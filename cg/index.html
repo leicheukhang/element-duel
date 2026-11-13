@@ -19,7 +19,16 @@ html,body{background:var(--bg);color:var(--ink);margin:0}
 html,body{height:100%;overflow:hidden;background:#000}
 body.cg{padding:0!important}
 body.cg .wrap{max-width:none;height:100%;display:grid;place-items:center;gap:0}
-body.cg header h1,body.cg .keys,body.cg .credit,body.cg .pad{display:none!important}
+body.cg header h1,body.cg .keys,body.cg .credit{display:none!important}
+body.cg .pad{display:none;position:fixed;left:0;right:0;bottom:0;z-index:15;justify-content:space-between;align-items:flex-end;pointer-events:none;
+  padding:0 max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+body.cg.touch.ingame .pad{display:flex}
+body.cg.touch.ingame header{display:none}
+body.cg .pad div{pointer-events:auto;grid-template-columns:repeat(3,min(12vh,58px));grid-auto-rows:min(12vh,58px);gap:min(1.4vh,7px)}
+body.cg .pad div+div{grid-template-columns:repeat(4,min(12vh,58px))}
+body.cg .pad button{background:rgba(22,20,42,.5);border:2px solid rgba(255,255,255,.35);border-radius:50%;color:#fff;font-size:min(2.6vh,13px);font-weight:800}
+body.cg .pad button:active{background:rgba(255,216,74,.45)}
+body.cg .stage{touch-action:none}
 body.cg .stage{width:min(100vw,calc(100vh*16/9));height:auto;border:0}
 body.cg header{position:fixed;right:8px;bottom:8px;z-index:20;opacity:.55}
 body.cg header:hover{opacity:1}
@@ -298,8 +307,8 @@ kbd{font-family:var(--fd);font-size:9px;background:#0b0a17;border:1px solid var(
   </div>
 
   <div class="pad" id="pad">
-    <div><span></span><button data-k="KeyW">▲</button><span></span><button data-k="KeyA">◀</button><button data-k="KeyS">G</button><button data-k="KeyD">▶</button></div>
-    <div><button data-k="KeyQ">Q</button><button data-k="KeyE">E</button><button data-k="KeyR">R</button><button data-k="KeyF">F</button><button data-k="KeyC">C</button><button data-k="KeyV">V</button><button data-k="KeyT">T</button><span></span></div>
+    <div><span></span><button data-k="KeyW">▲</button><span></span><button data-k="KeyA">◀</button><button data-k="KeyS">GUARD</button><button data-k="KeyD">▶</button></div>
+    <div><button data-k="KeyQ">L.ARM</button><button data-k="KeyE">R.ARM</button><button data-k="KeyR">L.LEG</button><button data-k="KeyF">R.LEG</button><button data-k="KeyC">HIT</button><button data-k="KeyV">DASH</button><button data-k="KeyT">ULT</button><span></span></div>
   </div>
 
   
@@ -307,6 +316,7 @@ kbd{font-family:var(--fd);font-size:9px;background:#0b0a17;border:1px solid var(
 </div>
 
 <script>document.body.classList.add("cg")</script>
+<script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>
 <script src="pfx.js"></script>
 <script src="roster.js"></script>
 <script>
@@ -438,7 +448,7 @@ let sfxBus=null,musBus=null,noiseB=null;const LIVE={};
 const TGT=k=>k==='hit'||k==='kick'?.2:k==='heavy'?.26:k==='sw'||k==='sw2'||k==='dash'?.07:k==='block'?.12:k==='sel'||k==='go'?.06:k==='win'||k==='lose'?.12:k==='ult'?.15:k==='buff'?.1:k==='revive'?.14:
   /^v[ode]\d$/.test(k)?.13:k==='x_thunder'||k==='el_explosions'?.24:k==='el_critters'||k==='el_spawn'?.13:k[1]==='_'&&k[0]==='s'?.14:.19;
 const CAP=k=>k==='x_thunder'?1.15:k==='el_lightning'?1:k.startsWith('el_')||k[1]==='_'?1.6:0;
-function initAudio(){if(AC)return audioP;try{const A=window.AudioContext||window.webkitAudioContext;AC=new A();master=AC.createGain();master.gain.value=SV.vol;
+function initAudio(){if(AC)return audioP;try{const A=window.AudioContext||window.webkitAudioContext;AC=new A();master=AC.createGain();master.gain.value=CGM?0:SV.vol;
     sfxBus=AC.createGain();musBus=AC.createGain();musBus.gain.value=SV.mus?.5:0;sfxBus.connect(master);musBus.connect(master);
     const lim=AC.createDynamicsCompressor();lim.threshold.value=-10;lim.ratio.value=12;lim.attack.value=.002;lim.release.value=.12;master.connect(lim);lim.connect(AC.destination);
     noiseB=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const nd=noiseB.getChannelData(0);for(let i=0;i<nd.length;i++)nd[i]=Math.random()*2-1}catch(e){AC=null;return null}
@@ -1114,7 +1124,7 @@ function newRound(){const[a,b]=G.f;[a,b].forEach((f,i)=>{Object.assign(f,{x:STAG
   P=[];FX=[];GH=[];SIG=[];SKL=[];PEND=[];PORT=[];DEB=[];PENDC=[];G.cl=[];EVT({k:'r'});ftClear();G.impact=0;G.cut=null;G.ko=null;G.zoom=1;G.phase='intro';G.pt=0;G.time=120*60;G.stop=G.slow=G.cine=0;G.cam=STAGE/2-W/2;pips()}
 const TR=['transitions/slash-wipe','transitions/diamond-wipe','transitions/iris','transitions/star-iris','transitions/shatter-wipe'];
 function wipe(){const id=pick(TR),m=PFX.reg.effects[id];if(!m)return;const D=m.meta.duration||2;G.trans=mkSig({fx:id,w:320,h:180,ox:0,oy:0,full:true},0,0,1,Math.round(D*20)-1,{})}
-function startMatch(mode,o){if(mode)G.mode=mode;if(o)G.mo=o;o=G.mo||{};G.cpu=G.mode==='cpu';if(G.mode!=='net'){G.net=null;net=null}
+function startMatch(mode,o){cgPlay(true);document.body.classList.add('ingame');if(mode)G.mode=mode;if(o)G.mo=o;o=G.mo||{};G.cpu=G.mode==='cpu';if(G.mode!=='net'){G.net=null;net=null}
   G.auto=!!o.auto;relAll();if(document.activeElement&&document.activeElement.blur&&document.activeElement!==document.body)document.activeElement.blur();
   const wt=net&&net.watch,me=G.net==='guest'?1:0,nm=i=>G.mode==='net'&&!wt?(i===me?'YOU':'RIVAL'):i===0?'P1':G.mode==='cpu'?'CPU':G.mode==='train'?'DUMMY':'P2';
   const l0=o.lo0||LO[0],l1=o.lo1||(G.mode==='cpu'?(SV.rnd?(SV.diff===2?counterLO(l0):randLO()):LO[2]):G.mode==='train'?LO[2]:LO[1]);
@@ -1122,9 +1132,9 @@ function startMatch(mode,o){if(mode)G.mode=mode;if(o)G.mo=o;o=G.mo||{};G.cpu=G.m
   G.f=[mkF(mkCh(l0,nm(0)),0),mkF(mkCh(l1,nm(1)),1)];G.f[0].lo=l0;G.f[1].lo=l1;G.cl=[];G.wins=[0,0];G.round=1;
   $('stage').classList.remove('tall');$('hub').hidden=$('shop').hidden=$('res').hidden=$('help').hidden=$('net').hidden=true;hud.hidden=false;buildHud();newRound();wipe()}
 function endRound(){const[a,b]=G.f,w=a.hp>b.hp?0:b.hp>a.hp?1:-1;if(w>=0)G.wins[w]++;pips();
-  if(w>=0&&G.wins[w]>=2){G.phase='over';EVT({k:'o',w});snd(G.mode==='cpu'&&w===1?'lose':'win');$('rest').innerHTML=`<em>${G.f[w].ch.name}</em> wins`;$('again').hidden=!!(net&&net.watch);$('again').textContent='Rematch';$('res').hidden=false}
+  if(w>=0&&G.wins[w]>=2){G.phase='over';cgPlay(false);EVT({k:'o',w});snd(G.mode==='cpu'&&w===1?'lose':'win');$('rest').innerHTML=`<em>${G.f[w].ch.name}</em> wins`;$('again').hidden=!!(net&&net.watch);$('again').textContent='Rematch';$('res').hidden=false}
   else{if(w>=0)G.round++;newRound()}}
-function toHub(){if(NR){NR.leave().catch(()=>{});NR=null}net=null;G.net=null;G.mode=null;G.mo=null;$('stage').classList.remove('tall');if(G.phase!=='menu')wipe();G.phase='menu';G.ko=null;G.zoom=1;setMusic('hub');hud.hidden=true;$('res').hidden=$('shop').hidden=$('help').hidden=$('net').hidden=true;$('hub').hidden=false;msg.classList.remove('show');cut.classList.remove('show');$('c1').classList.remove('on');$('c2').classList.remove('on');ftClear();hubInit()}
+function toHub(){cgPlay(false);document.body.classList.remove('ingame');if(NR){NR.leave().catch(()=>{});NR=null}net=null;G.net=null;G.mode=null;G.mo=null;$('stage').classList.remove('tall');if(G.phase!=='menu')wipe();G.phase='menu';G.ko=null;G.zoom=1;setMusic('hub');hud.hidden=true;$('res').hidden=$('shop').hidden=$('help').hidden=$('net').hidden=true;$('hub').hidden=false;msg.classList.remove('show');cut.classList.remove('show');$('c1').classList.remove('on');$('c2').classList.remove('on');ftClear();hubInit()}
 
 function step(){
   G.frame++;
@@ -1401,7 +1411,7 @@ $('mute').addEventListener('click',e=>{muted=!muted;e.currentTarget.textContent=
 $('musb').textContent='Music: '+(SV.mus?'On':'Off');$('vol').value=Math.round(SV.vol*100);
 $('musb').addEventListener('click',e=>{initAudio();SV.mus=!SV.mus;if(musBus)musBus.gain.value=SV.mus?.5:0;e.currentTarget.textContent='Music: '+(SV.mus?'On':'Off');saveLO()});
 $('vol').addEventListener('change',e=>e.target.blur());
-$('vol').addEventListener('input',e=>{SV.vol=clamp(e.target.value/100,0,1);if(master)master.gain.value=SV.vol;saveLO()});
+$('vol').addEventListener('input',e=>{SV.vol=clamp(e.target.value/100,0,1);if(master)master.gain.value=CGM?0:SV.vol;saveLO()});
 $('stg').addEventListener('click',()=>{SV.stage=SV.stage>=THEMES.length-1?-1:SV.stage+1;snd('sel');saveLO();$('stg').textContent='Arena: '+(SV.stage<0?'Random':THEMES[SV.stage].n)});
 
 {const st=document.createElement('style');st.textContent='.th{background-image:url('+THUMBS+')}';document.head.appendChild(st)}
@@ -1409,7 +1419,17 @@ buildBg(0);ctx.imageSmoothingEnabled=false;hubInit();
 let last=0,acc=0;
 function loop(ts){requestAnimationFrame(loop);const dt=Math.min(60,ts-last);last=ts;acc+=dt;let n=0;while(acc>=16.667&&n<4){step();acc-=16.667;n++}if(n)render()}
 requestAnimationFrame(loop);
-window.__duel={cloneHit,MAPS,sever,net:()=>net,THEMES,buildBg,koFx,posep,ftext,audio:()=>({BUF,POOL,p:initAudio()}),snd,G,step,render,startMatch,EL,LIMB,LO,SV,toHub,openShop,dbg:()=>[SKL,SIG],held,press(c){pressed[c]=8;netPress(c)},netJoin,setRoom(r){ROOM=r}};
+// CrazyGames SDK: follow the site's mute setting, report when play starts and stops, and show touch controls on phones and tablets
+let CGM=false,CGSDK=null,cgPlaying=false;
+function cgMute(m){CGM=!!m;if(master)master.gain.value=CGM?0:SV.vol}
+function cgPlay(on){if(cgPlaying===on)return;cgPlaying=on;try{if(CGSDK)on?CGSDK.game.gameplayStart():CGSDK.game.gameplayStop()}catch(e){}}
+function cgTouch(on){document.body.classList.toggle('touch',!!on)}
+cgTouch(typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches);
+(async()=>{try{const S=window.CrazyGames&&window.CrazyGames.SDK;if(!S)return;await S.init();CGSDK=S;
+  const si=S.user&&S.user.systemInfo,dt=si&&si.device&&si.device.type;if(dt)cgTouch(dt!=='desktop');
+  cgMute(S.game.settings&&S.game.settings.muteAudio);S.game.addSettingsChangeListener(st=>cgMute(st&&st.muteAudio));
+  if(cgPlaying){cgPlaying=false;cgPlay(true)}}catch(e){}})();
+window.__duel={cgMute,cgTouch,cloneHit,MAPS,sever,net:()=>net,THEMES,buildBg,koFx,posep,ftext,audio:()=>({BUF,POOL,p:initAudio()}),snd,G,step,render,startMatch,EL,LIMB,LO,SV,toHub,openShop,dbg:()=>[SKL,SIG],held,press(c){pressed[c]=8;netPress(c)},netJoin,setRoom(r){ROOM=r}};
 })();
 </script>
 
