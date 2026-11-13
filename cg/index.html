@@ -1433,15 +1433,16 @@ cgTouch(typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches);
   if(cgPlaying){cgPlaying=false;cgPlay(true)}
   // multiplayer: join from an invite link, open a room straight away for instant multiplayer, and follow joins while running
   const ip=S.game.getInviteParam('roomCode');
-  if(ip)cgJoin({roomCode:ip});else if(S.game.isInstantMultiplayer){$('hub').hidden=true;$('net').hidden=false;netJoin(String(1000+(Math.random()*9000|0)),'host')}else cgQuick();
+  if(ip)cgJoin({roomCode:ip});else if(S.game.isInstantMultiplayer){if(G.phase!=='menu')toHub();$('hub').hidden=true;$('net').hidden=false;netJoin(String(1000+(Math.random()*9000|0)),'host')}else cgQuick();
   S.game.addJoinRoomListener(p=>{if(G.phase!=='menu')toHub();cgJoin(p)})}catch(e){cgQuick()}})();
+setTimeout(()=>{if(!CGSDK)cgQuick()},2500);   // if the SDK is slow or absent, still start the fight
 // New players land straight in a fight against the CPU, with a short controls hint that does not block play
 function cgQuick(){if(G.phase!=='menu'||!$('net').hidden)return;SV.seen=true;startMatch('cpu',{});
   const h=document.createElement('div');h.className='cghint';h.textContent=document.body.classList.contains('touch')?'Use the buttons below to move, attack and cast skills. Fill the blue bar for your ultimate.':'A/D move · W jump · S guard · C attack · Q E R F limb skills · V dash · T ultimate';
   $('stage').appendChild(h);setTimeout(()=>h.remove(),9000)}
 function cgInvite(code){try{if(!CGSDK)return;const l=CGSDK.game.showInviteButton({roomCode:code})||CGSDK.game.inviteLink({roomCode:code});if(l)netMsg('Room code '+code+'. Waiting for an opponent… Invite a friend with the Invite button or this link: '+l)}catch(e){}}
 function cgHideInvite(){try{if(CGSDK)CGSDK.game.hideInviteButton()}catch(e){}}
-function cgJoin(p){const c=String(p&&p.roomCode||'');if(!/^\d{4}$/.test(c)||!ROOM)return;$('hub').hidden=true;$('help').hidden=true;$('net').hidden=false;netJoin(c,'guest')}
+function cgJoin(p){const c=String(p&&p.roomCode||'');if(!/^\d{4}$/.test(c)||!ROOM)return;if(G.phase!=='menu')toHub();$('hub').hidden=true;$('help').hidden=true;$('net').hidden=false;netJoin(c,'guest')}
 window.__duel={cgMute,cgTouch,cgJoin,cloneHit,MAPS,sever,net:()=>net,THEMES,buildBg,koFx,posep,ftext,audio:()=>({BUF,POOL,p:initAudio()}),snd,G,step,render,startMatch,EL,LIMB,LO,SV,toHub,openShop,dbg:()=>[SKL,SIG],held,press(c){pressed[c]=8;netPress(c)},netJoin,setRoom(r){ROOM=r}};
 })();
 </script>
