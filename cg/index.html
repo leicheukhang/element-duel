@@ -1564,11 +1564,11 @@ function cgHideInvite(){try{if(CGSDK)CGSDK.game.hideInviteButton()}catch(e){}}
 function cgJoin(p){const c=String(p&&p.roomCode||'');if(!/^\d{4}$/.test(c)||!ROOM)return;if(G.phase!=='menu')toHub();$('hub').hidden=true;$('help').hidden=true;$('net').hidden=false;netJoin(c,'guest')}
 // Ads: a midgame ad at a natural break between matches, and an optional rewarded ad for one more round after losing to the CPU.
 // The game's sound is paused while an ad plays.
-let cgAdT=Date.now();
-function cgAd(type,ok,fail){if(!CGSDK||!CGSDK.ad){if(fail)fail();return}let done=0;const end=f=>{if(done)return;done=1;try{if(AC)AC.resume()}catch(e){}if(f)f()};
+const CGADS=false;let cgAdT=Date.now();
+function cgAd(type,ok,fail){if(!CGADS||!CGSDK||!CGSDK.ad){if(fail)fail();return}let done=0;const end=f=>{if(done)return;done=1;try{if(AC)AC.resume()}catch(e){}if(f)f()};
   try{CGSDK.ad.requestAd(type,{adStarted:()=>{try{if(AC)AC.suspend()}catch(e){}},adFinished:()=>end(ok),adError:()=>end(fail)})}catch(e){end(fail)}}
-function cgMid(fn){if(!CGSDK||G.net||Date.now()-cgAdT<180000){fn();return}cgAdT=Date.now();cgAd('midgame',fn,fn)}
-function cgRevOffer(w){$('revad').hidden=!(CGSDK&&CGSDK.ad&&G.mode==='cpu'&&w===1&&!G.revUsed)}
+function cgMid(fn){if(!CGADS||!CGSDK||G.net||Date.now()-cgAdT<180000){fn();return}cgAdT=Date.now();cgAd('midgame',fn,fn)}
+function cgRevOffer(w){$('revad').hidden=!(CGADS&&CGSDK&&CGSDK.ad&&G.mode==='cpu'&&w===1&&!G.revUsed)}
 $('revad').addEventListener('click',()=>{snd('sel');const b=$('revad');b.disabled=true;
   cgAd('rewarded',()=>{b.disabled=false;b.hidden=true;G.revUsed=1;G.wins[1]--;G.round++;G.use={};$('res').hidden=true;cgPlay(true);newRound()},()=>{b.disabled=false;b.hidden=true})});
 $('langb').addEventListener('click',()=>{try{localStorage.setItem('duel-lang','zh')}catch(e){}location.replace('zh/')});
