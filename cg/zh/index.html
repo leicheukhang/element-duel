@@ -476,7 +476,7 @@ function play(b,vol,rate,key,cap){const s=AC.createBufferSource(),g=AC.createGai
   if(cap&&b.duration/(rate||1)>cap){g.gain.setValueAtTime(vol,t+cap*.55);g.gain.linearRampToValueAtTime(0,t+cap);s.stop(t+cap+.03)}
   if(key){const o=LIVE[key];if(o)try{o.g.gain.cancelScheduledValues(t);o.g.gain.setValueAtTime(o.v,t);o.g.gain.linearRampToValueAtTime(0,t+.06);o.s.stop(t+.08)}catch(e){}LIVE[key]={s,g,v:vol}}
   s.start()}
-function snd(k,r){if(!AC||muted)return;k=ALIAS[k]||k;if(!POOL[k]&&!BUF[k]&&FB[k])k=FB[k];try{const pool=POOL[k],b=BUF[k]||(k==='kick'?BUF.hit:null),ex=k.startsWith('el_')||k[1]==='_';let done=false;
+function snd(k,r){if(window.__sndHook)window.__sndHook(k);if(!AC||muted)return;k=ALIAS[k]||k;if(!POOL[k]&&!BUF[k]&&FB[k])k=FB[k];try{const pool=POOL[k],b=BUF[k]||(k==='kick'?BUF.hit:null),ex=k.startsWith('el_')||k[1]==='_';let done=false;
     if(pool){const q=pick(pool);play(q,clamp(TGT(k)/(q.pk||.1),.15,10),(r||1)*(.94+rnd()*.12),ex?k:null,CAP(k));done=true}
     if(b&&(!done||BOTH[k]))play(b,done?.7:1,(r||1)*(k.startsWith('el_')||k==='hit'||k==='heavy'?.95+rnd()*.1:1),null,0)}catch(e){}}
 // 背景音乐：现场合成的小调循环，战斗一套、大厅一套
@@ -1502,7 +1502,7 @@ function cgRevOffer(w){$('revad').hidden=!(CGSDK&&CGSDK.ad&&G.mode==='cpu'&&w===
 $('revad').addEventListener('click',()=>{snd('sel');const b=$('revad');b.disabled=true;
   cgAd('rewarded',()=>{b.disabled=false;b.hidden=true;G.revUsed=1;G.wins[1]--;G.round++;G.use={};$('res').hidden=true;cgPlay(true);newRound()},()=>{b.disabled=false;b.hidden=true})});
 $('langb').addEventListener('click',()=>{try{localStorage.setItem('duel-lang','en')}catch(e){}location.replace('../?lang=en')});
-window.__duel={cgMute,cgTouch,cgJoin,cgAd,cgMid,startTut,tutEnd,mxEnd,mxLv,cloneHit,MAPS,sever,net:()=>net,THEMES,buildBg,koFx,posep,ftext,audio:()=>({BUF,POOL,p:initAudio()}),snd,G,step,render,startMatch,EL,LIMB,LO,SV,toHub,openShop,dbg:()=>[SKL,SIG],held,press(c){pressed[c]=8;netPress(c)},netJoin,setRoom(r){ROOM=r}};
+window.__duel={cgMute,cgTouch,cgJoin,cgAd,cgMid,sndT:()=>({SMP,ALIAS,FB,SVOL}),startTut,tutEnd,mxEnd,mxLv,cloneHit,MAPS,sever,net:()=>net,THEMES,buildBg,koFx,posep,ftext,audio:()=>({BUF,POOL,p:initAudio()}),snd,G,step,render,startMatch,EL,LIMB,LO,SV,toHub,openShop,dbg:()=>[SKL,SIG],held,press(c){pressed[c]=8;netPress(c)},netJoin,setRoom(r){ROOM=r}};
 })();
 </script>
 
