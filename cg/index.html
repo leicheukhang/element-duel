@@ -29,6 +29,7 @@ body.cg .pad div+div{grid-template-columns:repeat(4,min(12vh,58px))}
 body.cg .pad button{background:rgba(22,20,42,.5);border:2px solid rgba(255,255,255,.35);border-radius:50%;color:#fff;font-size:min(2.6vh,13px);font-weight:800}
 body.cg .pad button:active{background:rgba(255,216,74,.45)}
 body.cg .stage{touch-action:none}
+#netmsg{overflow-wrap:anywhere;max-width:90cqw}
 .cghint{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);background:rgba(8,7,20,.78);border:1px solid #6d679c;color:#fff;font-size:max(10px,1.6cqw);padding:.6cqw 1.4cqw;white-space:nowrap;pointer-events:none;z-index:6;animation:cgfade 9s linear forwards}
 @keyframes cgfade{0%,85%{opacity:1}100%{opacity:0}}
 body.cg .stage{width:min(100vw,calc(100vh*16/9));height:auto;border:0}
@@ -1445,7 +1446,7 @@ let cgRoomId=null;
 function cgRoom(code,joinable){cgRoomId=code;try{if(CGSDK)CGSDK.game.updateRoom({roomId:code,isJoinable:!!joinable,inviteParams:{roomCode:code}})}catch(e){}}
 function cgLeft(){if(!cgRoomId)return;cgRoomId=null;try{if(CGSDK)CGSDK.game.leftRoom()}catch(e){}}
 function cgInvite(code){cgRoom(code,true);try{if(!CGSDK)return;const l=CGSDK.game.inviteLink({roomCode:code});try{CGSDK.game.showInviteButton({roomCode:code})}catch(e){}
-  if(l)netMsg('Room code '+code+'. Waiting for an opponent… Invite a friend with the Invite button or this link: '+l)}catch(e){}}
+  netMsg('Room code '+code+'. Waiting for an opponent… Press "Invite friends" below the game to invite someone.')}catch(e){}}
 function cgHideInvite(){try{if(CGSDK)CGSDK.game.hideInviteButton()}catch(e){}}
 function cgJoin(p){const c=String(p&&p.roomCode||'');if(!/^\d{4}$/.test(c)||!ROOM)return;if(G.phase!=='menu')toHub();$('hub').hidden=true;$('help').hidden=true;$('net').hidden=false;netJoin(c,'guest')}
 window.__duel={cgMute,cgTouch,cgJoin,cloneHit,MAPS,sever,net:()=>net,THEMES,buildBg,koFx,posep,ftext,audio:()=>({BUF,POOL,p:initAudio()}),snd,G,step,render,startMatch,EL,LIMB,LO,SV,toHub,openShop,dbg:()=>[SKL,SIG],held,press(c){pressed[c]=8;netPress(c)},netJoin,setRoom(r){ROOM=r}};
