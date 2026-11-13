@@ -1136,7 +1136,7 @@ function startMatch(mode,o){cgPlay(true);document.body.classList.add('ingame');i
 function endRound(){const[a,b]=G.f,w=a.hp>b.hp?0:b.hp>a.hp?1:-1;if(w>=0)G.wins[w]++;pips();
   if(w>=0&&G.wins[w]>=2){G.phase='over';cgPlay(false);EVT({k:'o',w});snd(G.mode==='cpu'&&w===1?'lose':'win');$('rest').innerHTML=`<em>${G.f[w].ch.name}</em> wins`;$('again').hidden=!!(net&&net.watch);$('again').textContent='Rematch';$('res').hidden=false}
   else{if(w>=0)G.round++;newRound()}}
-function toHub(){cgPlay(false);cgHideInvite();document.body.classList.remove('ingame');if(NR){NR.leave().catch(()=>{});NR=null}net=null;G.net=null;G.mode=null;G.mo=null;$('stage').classList.remove('tall');if(G.phase!=='menu')wipe();G.phase='menu';G.ko=null;G.zoom=1;setMusic('hub');hud.hidden=true;$('res').hidden=$('shop').hidden=$('help').hidden=$('net').hidden=true;$('hub').hidden=false;msg.classList.remove('show');cut.classList.remove('show');$('c1').classList.remove('on');$('c2').classList.remove('on');ftClear();hubInit()}
+function toHub(){cgPlay(false);cgHideInvite();cgLeft();document.body.classList.remove('ingame');if(NR){NR.leave().catch(()=>{});NR=null}net=null;G.net=null;G.mode=null;G.mo=null;$('stage').classList.remove('tall');if(G.phase!=='menu')wipe();G.phase='menu';G.ko=null;G.zoom=1;setMusic('hub');hud.hidden=true;$('res').hidden=$('shop').hidden=$('help').hidden=$('net').hidden=true;$('hub').hidden=false;msg.classList.remove('show');cut.classList.remove('show');$('c1').classList.remove('on');$('c2').classList.remove('on');ftClear();hubInit()}
 
 function step(){
   G.frame++;
@@ -1348,10 +1348,10 @@ function guestStep(){const[a,b]=G.f,s=net.snap;
 function leaveNet(m){toHub();$('hubmsg').textContent=m||''}
 function netMsg(t){$('netmsg').textContent=t}
 function netLo(){const v=parseInt($('npre').value,10);return(v>=0&&SV.pre[v]&&loFrom(SV.pre[v].ids))||LO[0]}
-function startNet(role,ids,peer,ex){cgHideInvite();ex=ex||{};net={role,peer,watch:role==='watch',seq:0,sn:0,eid:0,ev:[],q:[],qid:0,pid:0,pb:{},h:[0,0,0],last:G.frame,snap:null};G.net=role==='host'?'host':'guest';
+function startNet(role,ids,peer,ex){cgHideInvite();if(G.netCode)cgRoom(G.netCode,false);ex=ex||{};net={role,peer,watch:role==='watch',seq:0,sn:0,eid:0,ev:[],q:[],qid:0,pid:0,pb:{},h:[0,0,0],last:G.frame,snap:null};G.net=role==='host'?'host':'guest';
   const ol=loFrom(ids)||randLO(),mine=NLO||LO[0],l1=ex.lo1&&loFrom(ex.lo1);
   startMatch('net',role==='host'?{lo0:mine,lo1:ol}:{lo0:ol,lo1:l1||(role==='watch'?randLO():mine),stage:ex.stage})}
-async function netJoin(code,role){if(role===true)role='host';else if(!role)role='guest';NLO=netLo();
+async function netJoin(code,role){G.netCode=code;if(role===true)role='host';else if(!role)role='guest';NLO=netLo();
   let room;try{if(NR){await NR.leave().catch(()=>{});NR=null}room=NR=await ROOM.join('duel-'+code,role)}catch(e){NR=null;const m=e&&e.message;netMsg(m==='nohost'?'No room '+code+' found. Check the code, or ask your friend to create the room first.':m==='taken'?'That room code is in use. Press Create room again.':m==='blocked'?'Online play cannot connect from this page.':'Could not connect. Check your network and try again.');return}
   let me=null,started=false,hiT=0;const net0=G.frame;const go=to=>room.emit('go',{lo:loIds(G.mo.lo0),lo1:loIds(G.mo.lo1),to,stage:G.stage}).catch(()=>{});
   if(role==='host'){netMsg('Room code '+code+'. Waiting for an opponent… (others can watch with this code)');cgInvite(code);
@@ -1440,7 +1440,12 @@ setTimeout(()=>{if(!CGSDK)cgQuick()},2500);   // if the SDK is slow or absent, s
 function cgQuick(){if(G.phase!=='menu'||!$('net').hidden)return;SV.seen=true;startMatch('cpu',{});
   const h=document.createElement('div');h.className='cghint';h.textContent=document.body.classList.contains('touch')?'Use the buttons below to move, attack and cast skills. Fill the blue bar for your ultimate.':'A/D move · W jump · S guard · C attack · Q E R F limb skills · V dash · T ultimate';
   $('stage').appendChild(h);setTimeout(()=>h.remove(),9000)}
-function cgInvite(code){try{if(!CGSDK)return;const l=CGSDK.game.showInviteButton({roomCode:code})||CGSDK.game.inviteLink({roomCode:code});if(l)netMsg('Room code '+code+'. Waiting for an opponent… Invite a friend with the Invite button or this link: '+l)}catch(e){}}
+// Room data: tell CrazyGames which room the player is in and whether friends can still join it
+let cgRoomId=null;
+function cgRoom(code,joinable){cgRoomId=code;try{if(CGSDK)CGSDK.game.updateRoom({roomId:code,isJoinable:!!joinable,inviteParams:{roomCode:code}})}catch(e){}}
+function cgLeft(){if(!cgRoomId)return;cgRoomId=null;try{if(CGSDK)CGSDK.game.leftRoom()}catch(e){}}
+function cgInvite(code){cgRoom(code,true);try{if(!CGSDK)return;const l=CGSDK.game.inviteLink({roomCode:code});try{CGSDK.game.showInviteButton({roomCode:code})}catch(e){}
+  if(l)netMsg('Room code '+code+'. Waiting for an opponent… Invite a friend with the Invite button or this link: '+l)}catch(e){}}
 function cgHideInvite(){try{if(CGSDK)CGSDK.game.hideInviteButton()}catch(e){}}
 function cgJoin(p){const c=String(p&&p.roomCode||'');if(!/^\d{4}$/.test(c)||!ROOM)return;if(G.phase!=='menu')toHub();$('hub').hidden=true;$('help').hidden=true;$('net').hidden=false;netJoin(c,'guest')}
 window.__duel={cgMute,cgTouch,cgJoin,cloneHit,MAPS,sever,net:()=>net,THEMES,buildBg,koFx,posep,ftext,audio:()=>({BUF,POOL,p:initAudio()}),snd,G,step,render,startMatch,EL,LIMB,LO,SV,toHub,openShop,dbg:()=>[SKL,SIG],held,press(c){pressed[c]=8;netPress(c)},netJoin,setRoom(r){ROOM=r}};
