@@ -26,7 +26,7 @@ body.cg.touch.ingame .pad{display:flex}
 body.cg.touch.ingame header{display:none}
 body.cg .pad div{pointer-events:auto;grid-template-columns:repeat(3,min(12vh,58px));grid-auto-rows:min(12vh,58px);gap:min(1.4vh,7px)}
 body.cg .pad div+div{grid-template-columns:repeat(4,min(12vh,58px))}
-body.cg .pad .joy{width:min(36vh,150px);height:min(36vh,150px);border-color:rgba(255,255,255,.35)}
+body.cg .pad .joy{flex:none;aspect-ratio:1;width:min(36vh,150px);height:min(36vh,150px);border-color:rgba(255,255,255,.35)}
 body.cg .pad button[data-k=KeyC]{border-radius:999px}
 body.cg .pad button{background-color:rgba(22,20,42,.5);border:2px solid rgba(255,255,255,.35);border-radius:50%;color:#fff;font-size:min(2.6vh,13px);font-weight:800}
 body.cg .pad button:active{background:rgba(255,216,74,.45)}
@@ -39,6 +39,22 @@ body.cg header{position:fixed;right:8px;bottom:8px;z-index:20;opacity:.55}
 body.cg header:hover{opacity:1}
 body.cg header button,body.cg .vol{font-size:11px;padding:3px 7px}
 body.cg .modes{padding-bottom:4.2cqw}
+@media (orientation:portrait){
+  body.cg.touch .wrap{place-items:start center;padding-top:max(8px,env(safe-area-inset-top))}
+  body.cg.touch .stage{width:100vw}
+  body.cg.touch.ingame .pad{top:calc(100vw*9/16 + 16px);align-items:center;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+  body.cg.touch .pad .joy{width:min(36vw,170px);height:min(36vw,170px)}
+  body.cg.touch .pad div{grid-template-columns:repeat(3,min(12.5vw,60px));grid-auto-rows:min(12.5vw,60px);gap:min(1.8vw,9px)}
+  body.cg.touch .pad div+div{grid-template-columns:repeat(4,min(12.5vw,60px))}
+  body.cg.touch .pad button{font-size:min(3.2vw,14px)}
+  body.cg.touch .rot{display:block}
+  body.cg.touch.ingame header{display:flex;flex-wrap:nowrap;white-space:nowrap;gap:6px;align-items:center;position:fixed;top:auto;bottom:max(6px,env(safe-area-inset-bottom));left:50%;right:auto;transform:translateX(-50%)}
+  body.cg.touch.ingame header .vol{display:none}
+  body.cg.touch.ingame header .hbtn{display:flex;flex-wrap:nowrap;gap:6px}
+}
+.rot{display:none;position:fixed;left:0;right:0;top:calc(100vw*9/16 + 24px);text-align:center;color:#c9c4dc;font-size:14px;pointer-events:none}
+body.cg.ingame .rot{display:none!important}
+#cgload{position:fixed;inset:0;display:grid;place-items:center;background:#07061a;color:#ffd84a;font:700 16px/1.4 system-ui,sans-serif;z-index:50;letter-spacing:.1em}
 body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .ov .creds{font-size:max(9px,1.25cqw);max-width:80cqw;line-height:1.6;color:var(--dim);text-align:left}
 body{font-family:var(--fb);font-size:14px;line-height:1.5;padding-block:16px;
@@ -265,6 +281,7 @@ kbd{font-family:var(--fd);font-size:9px;background:#0b0a17;border:1px solid var(
 @media (prefers-reduced-motion:reduce){.msg.show,.combo.on,.cut.show span,.ft.crit i{animation:none}}
 </style>
 
+<div id="cgload">LOADING…</div><p class="rot">Turn your phone sideways for a bigger view</p>
 <div class="wrap">
   <header>
     <h1>Element Duel<small>STICKMAN</small></h1>
@@ -723,7 +740,7 @@ function mkSig(e,x,y,sc,life,o){o=o||{};const m=PFX.reg.effects[e.fx],w=e.w,h=e.
 function sigStep(s){s.fx.update(1/60);if(s.fx.done())s.fx=s.mk();if(s.follow){s.x=s.follow.x;s.y=s.follow.y}}
 function sigBlit(s){PFX.clearFrame(s.fr);s.fx.draw(s.fr);PFX.composite(s.fr,s.img.data,null);s.cx.putImageData(s.img,0,0)}
 function sigDraw(s){sigBlit(s);if(s.full)g.drawImage(s.cv,Math.round(G.cam),0,W,H);else g.drawImage(s.cv,Math.round(s.x-s.ox*s.s),Math.round(s.y-s.oy*s.s),s.w*s.s,s.h*s.s)}
-function part(x,y,vx,vy,l,c,s,gr){if(P.length<700)P.push({x,y,vx,vy,l,m:l,c,s:s||2,gr:gr||0})}
+function part(x,y,vx,vy,l,c,s,gr){if(lowFx&&rnd()<.5)return;if(P.length<700)P.push({x,y,vx,vy,l,m:l,c,s:s||2,gr:gr||0})}
 function burst(x,y,n,spd,cols,life,s,gr){for(let i=0;i<n;i++){const a=rnd()*PI*2,v=spd*(.25+rnd()*.75);part(x,y,Math.cos(a)*v,Math.sin(a)*v,life*(.5+rnd()*.5),pick(cols),s,gr)}}
 function dust(x,n,y){for(let i=0;i<n;i++)part(x+(rnd()-.5)*10,(y||GY)-1,(rnd()-.5)*2.4,-rnd()*1.2,10+rnd()*8,pick(['#8d86b8','#5e5888','#bdb7e0']),2,.05)}
 function spark(x,y,c,heavy){FX.push({k:'star',x,y,c:c.c1,l:heavy?11:7,m:heavy?11:7,r:heavy?24:13,sd:rnd()*6,n:heavy?8:6});
@@ -1126,6 +1143,8 @@ document.addEventListener('visibilitychange',relAll);document.addEventListener('
   const end=()=>{pid=null;up=0;if(kn&&kn.style)kn.style.transform='';for(const a of['l','r','d','u'])H(a,0)};
   J.addEventListener('pointerdown',e=>{e.preventDefault();initAudio();pid=e.pointerId;try{J.setPointerCapture(pid)}catch(_){}mv(e)});
   J.addEventListener('pointermove',e=>{if(e.pointerId===pid)mv(e)});for(const ev of['pointerup','pointercancel'])J.addEventListener(ev,e=>{if(e.pointerId===pid)end()})}
+// 手机上按住“攻”会持续出拳，不用一直连点
+let padHitT=0;function padRepeat(){const c=MAP[0].a[0];if(!document.body.classList.contains('touch')||!held[c]||G.phase!=='fight'){padHitT=0;return}if(++padHitT%14===0){pressed[c]=8;netPress(c)}}
 const PADACT={KeyW:'u',KeyA:'l',KeyS:'d',KeyD:'r',KeyQ:'k0',KeyE:'k1',KeyR:'k2',KeyF:'k3',KeyC:'a',KeyV:'x',KeyT:'q'};
 document.querySelectorAll('#pad button').forEach(b=>{const act=PADACT[b.dataset.k],k=()=>MAP[0][act][0];
   b.addEventListener('pointerdown',e=>{e.preventDefault();initAudio();held[k()]=1;pressed[k()]=8;netPress(k())});
@@ -1434,13 +1453,14 @@ addEventListener('keydown',e=>{if(!kWait||$('help').hidden)return;e.preventDefau
   const old=MAP[kP][kWait][0];for(let p=0;p<2;p++)for(const a of KACT)if(MAP[p][a].includes(c))MAP[p][a]=[old];MAP[kP][kWait]=[c];
   for(let p=0;p<2;p++)for(const a of KACT)MAP[p][a]=[MAP[p][a][0]];keysUsed();kWait=null;relAll();snd('go');saveLO();renderKeys()},true);
 /* ---------- 新手教学：在练习场里一步一步学按键，木桩不会还手 ---------- */
-const TUT=[['Move',()=>`Press ${K('l')} / ${K('r')} (or drag the stick) to walk`,(t,a)=>t.mv>90],
-  ['Jump',()=>`Press ${K('u')} (or push the stick up) to jump onto platforms`,(t,a)=>a.y<a.gy-14],
-  ['Attack',()=>`Walk up to the ${G.tut&&G.tut.live?'enemy':'dummy'} and press ${K('a')} (HIT) to land 3 hits`,(t,a)=>t.hits>=3],
-  ['Limb skills',()=>`Press ${K('k0')} ${K('k1')} ${K('k2')} ${K('k3')} (L.ARM R.ARM L.LEG R.LEG) to cast 2 skills`,(t,a)=>t.cast>=2],
-  ['Dash',()=>`Press ${K('x')} (DASH). The start of a dash dodges attacks`,(t,a)=>a.st==='dash'],
-  ['Guard',()=>`Face the enemy and hold ${K('d')} (or pull the stick down) to block`,(t,a)=>t.gd>=20],
-  ['Ultimate',()=>`When the blue bar is full, press ${K('q')} (ULT)`,(t,a)=>G.cine>0||(a.st==='atk'&&a.mv&&a.mv.ult)]];
+const TCH=()=>!!(document.body&&document.body.classList&&document.body.classList.contains('touch'));
+const TUT=[['Move',()=>TCH()?'Drag the stick at bottom left to walk':`Press ${K('l')} / ${K('r')} to walk`,(t,a)=>t.mv>90],
+  ['Jump',()=>TCH()?'Push the stick up to jump onto platforms':`Press ${K('u')} to jump onto platforms`,(t,a)=>a.y<a.gy-14],
+  ['Attack',()=>TCH()?`Walk up to the ${G.tut&&G.tut.live?'enemy':'dummy'} and hold HIT to land 3 hits`:`Walk up to the ${G.tut&&G.tut.live?'enemy':'dummy'} and press ${K('a')} to land 3 hits`,(t,a)=>t.hits>=3],
+  ['Limb skills',()=>TCH()?'Tap the four icon buttons on the right to cast 2 skills':`Press ${K('k0')} ${K('k1')} ${K('k2')} ${K('k3')} (left arm, right arm, left leg, right leg) to cast 2 skills`,(t,a)=>t.cast>=2],
+  ['Dash',()=>TCH()?'Tap DASH. The start of a dash dodges attacks':`Press ${K('x')} to dash. The start of a dash dodges attacks`,(t,a)=>a.st==='dash'],
+  ['Guard',()=>TCH()?'Pull the stick down and hold it to block':`Face the enemy and hold ${K('d')} to block`,(t,a)=>t.gd>=20],
+  ['Ultimate',()=>TCH()?'Tap ULT when it glows':`When the blue bar is full, press ${K('q')}`,(t,a)=>G.cine>0||(a.st==='atk'&&a.mv&&a.mv.ult)]];
 let tutCb=null,tutI=0;
 function startTut(then){initAudio();snd('go');tutCb=then||null;startMatch('train',{tut:1,lo0:LO[0]});tutShow()}
 function tutShow(){const t=G.tut;if(!t)return;if(t.live)tutI=Math.min(t.i,TUT.length-1);$('tut').hidden=false;$('tut').classList.toggle('ok',t.i>=TUT.length);$('tutskip').hidden=t.i>=TUT.length;
@@ -1578,8 +1598,11 @@ $('stg').addEventListener('click',()=>{SV.stage=SV.stage>=THEMES.length-1?-1:SV.
 
 {const st=document.createElement('style');st.textContent='.th{background-image:url('+THUMBS+')}';document.head.appendChild(st)}
 buildBg(0);ctx.imageSmoothingEnabled=false;hubInit();
-let last=0,acc=0;
-function loop(ts){requestAnimationFrame(loop);gpPoll();const dt=Math.min(60,ts-last);last=ts;acc+=dt;let n=0;while(acc>=16.667&&n<4){step();acc-=16.667;n++}if(n)render()}
+let last=0,acc=0,slowN=0,lowFx=false,skipR=0;
+// 慢手机：连续卡顿就隔一帧画一次，并减少粒子；游戏速度不变
+function loop(ts){requestAnimationFrame(loop);gpPoll();padRepeat();const dt=Math.min(60,ts-last);last=ts;acc+=dt;
+  if(G.phase==='fight'&&!document.hidden){slowN=clamp(slowN+(dt>26?1:-.25),0,200);if(!lowFx&&slowN>=120){lowFx=true;window.__lowFx=1}}
+  let n=0;while(acc>=16.667&&n<4){step();acc-=16.667;n++}if(n&&!(lowFx&&(skipR^=1)))render()}
 requestAnimationFrame(loop);
 // CrazyGames SDK: follow the site's mute setting, report when play starts and stops, and show touch controls on phones and tablets
 let CGM=false,CGSDK=null,cgPlaying=false;
@@ -1620,7 +1643,8 @@ function cgRevOffer(w){$('revad').hidden=!(CGADS&&CGSDK&&CGSDK.ad&&G.mode==='cpu
 $('revad').addEventListener('click',()=>{snd('sel');const b=$('revad');b.disabled=true;
   cgAd('rewarded',()=>{b.disabled=false;b.hidden=true;G.revUsed=1;G.wins[1]--;G.round++;G.use={};$('res').hidden=true;cgPlay(true);newRound()},()=>{b.disabled=false;b.hidden=true})});
 $('langb').addEventListener('click',()=>{try{localStorage.setItem('duel-lang','zh')}catch(e){}location.replace('zh/')});
-window.__duel={cgMute,cgTouch,cgJoin,cgAd,cgMid,unlockN,isUn,dayCheck,dailyLO,today,sndT:()=>({SMP,ALIAS,FB,SVOL}),startTut,tutEnd,mxEnd,mxLv,cloneHit,MAPS,sever,net:()=>net,THEMES,buildBg,koFx,posep,ftext,audio:()=>({BUF,POOL,p:initAudio()}),snd,G,step,render,startMatch,EL,LIMB,LO,SV,toHub,openShop,dbg:()=>[SKL,SIG],held,press(c){pressed[c]=8;netPress(c)},netJoin,setRoom(r){ROOM=r}};
+{const l=document.getElementById('cgload');if(l)l.remove()}
+window.__duel={cgMute,cgTouch,cgJoin,cgAd,cgMid,lowFx:()=>lowFx,unlockN,isUn,dayCheck,dailyLO,today,sndT:()=>({SMP,ALIAS,FB,SVOL}),startTut,tutEnd,mxEnd,mxLv,cloneHit,MAPS,sever,net:()=>net,THEMES,buildBg,koFx,posep,ftext,audio:()=>({BUF,POOL,p:initAudio()}),snd,G,step,render,startMatch,EL,LIMB,LO,SV,toHub,openShop,dbg:()=>[SKL,SIG],held,press(c){pressed[c]=8;netPress(c)},netJoin,setRoom(r){ROOM=r}};
 })();
 </script>
 
