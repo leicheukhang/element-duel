@@ -172,7 +172,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .mxup{color:var(--gold)!important;font-size:max(11px,1.7cqw)!important;text-align:center;line-height:1.5;margin-top:1cqw!important}
 #rest{text-align:center}
 #rest .tmr{letter-spacing:0;font-weight:400;font-size:max(10px,1.4cqw);color:#9fd0ff;margin-top:.8cqw}
-.unbar{display:flex;align-items:center;gap:1cqw;font-size:max(10px,1.4cqw);color:var(--dim)}.unbar i{flex:1;height:max(4px,.7cqw);background:#2a2650;position:relative;max-width:18cqw}.unbar i b{position:absolute;inset:0 auto 0 0;background:var(--gold)}
+.unbar u{text-decoration:none;color:var(--gold)}.unbar{flex-wrap:wrap;display:flex;align-items:center;gap:1cqw;font-size:max(10px,1.4cqw);color:var(--dim)}.unbar i{flex:1;height:max(4px,.7cqw);background:#2a2650;position:relative;max-width:18cqw}.unbar i b{position:absolute;inset:0 auto 0 0;background:var(--gold)}
 .toast{position:absolute;right:1.5cqw;top:22%;z-index:9;background:rgba(8,7,20,.92);border:max(1px,.15cqw) solid var(--gold);padding:.8cqw 1.4cqw;font-size:max(11px,1.6cqw);color:#fff;display:flex;flex-direction:column;gap:.2cqw;opacity:0;pointer-events:none}
 .toast b{color:var(--gold);font-size:max(9px,1.2cqw);letter-spacing:.1em}.toast i{font-style:normal;color:var(--dim);font-size:max(9px,1.2cqw)}
 .toast.show{animation:toast 4s ease-out forwards}@keyframes toast{0%{opacity:0;transform:translateX(3cqw)}8%,85%{opacity:1;transform:none}100%{opacity:0}}
@@ -662,6 +662,7 @@ const ARC=[.5,.8,1.1,1.4,1.7,2.1];
 const ACH=[['first','初战告捷','赢一场人机对战'],['hard','以弱胜强','击败困难难度的电脑'],['perfect','毫发无伤','一滴血不掉赢下一回合'],['comeback','绝地反击','生命不足 10% 时赢下一回合'],
   ['ultko','一锤定音','用大招打出 K.O.'],['sever','四肢全断','一回合内打断对手全部四肢'],['combo','融会贯通','打出一次组合技'],['master','炉火纯青','把一个元素练到三星'],
   ['clear','一路通关','打通闯关模式'],['online','线上高手','赢一场联机对战']];
+const TCH=()=>!!(document.body&&document.body.classList&&document.body.classList.contains('touch'));
 let SVKEYS=null,KEYSREADY=false;
 // 元素解锁：开局只有三套默认搭配里的元素，每赢一场随机解锁一个；每日挑战和连续登录另有奖励
 const START=new Set(DEF.flatMap(a=>a.slice(0,5)));
@@ -699,7 +700,7 @@ function achTxt(){$('achb').textContent='成就 '+ACH.filter(a=>SV.ach[a[0]]).le
 function mxEnd(w){if(!G.use||G.auto||(G.tut&&!G.tut.live)||!['cpu','local','net'].includes(G.mode)||(net&&net.watch))return'';const me=meI(),f=G.f[me],ups=[],seen=new Set();
   for(const e of f.lo.s){if(seen.has(e.fx))continue;seen.add(e.fx);const l0=mxLv(e.fx);SV.mx[e.fx]=Math.min(9999,(SV.mx[e.fx]||0)+(G.use[e.fx]||0)+(w===me?5:0));const l1=mxLv(e.fx);if(l1===3)ach('master');if(l1>l0)ups.push(`${e.name} 熟练度升到 ${'★'.repeat(l1)}`)}
   // 赢了（本地双人不算）：解锁一个新元素；自动难度下电脑赢了变强、输了变弱
-  let un='';if(G.mode!=='local'){if(w===me){SV.w++;un=unHtml(unlockN(SV.w<=10?2:1),'解锁新元素 ')}if(G.mode==='cpu'&&!G.arc&&!G.daily&&SV.diff===3)SV.adf=clamp(SV.adf+(w===me?.15:-.2),.2,2)}
+  let un='';if(G.mode!=='local'){if(w===me){SV.w++;un=unHtml(unlockN(SV.w<=10?2:1),'解锁新元素 ');if(SV.w%5===0)un+=unHtml(unlockN(3),`${SV.w} 胜奖励 `)}if(G.mode==='cpu'&&!G.arc&&!G.daily&&SV.diff===3)SV.adf=clamp(SV.adf+(w===me?.15:-.2),.2,2)}
   G.use=null;saveLO();return(ups.length?'<p class="mxup">'+ups.join('<br>')+'</p>':'')+un+(G.mode!=='local'?tmrTxt():'')}
 // 结算时提醒明天的奖励，给玩家一个明天回来的理由
 function tmrTxt(){const n=SV.day.streak+1,big=n%7===0;return`<p class="tmr">明天再来：连续登录第 ${n} 天，送 ${big?3:1} 个元素${SV.day.done===today()?'；还有新的每日挑战':''}</p>`}
@@ -871,15 +872,17 @@ function clrB(f){for(const k of BT)f.b[k]=0;for(const k of DT)f.d[k]=0;f.b.regA=
 function setSt(f,s){f.st=s;f.t=0;f.dface=0;f.ghost=0;f.pk=null}
 function startMove(f,m){setSt(f,'atk');f.mv=m;f.hs=new Set();f.hsc=new Set();f.conn=false}
 function startUlt(f,o){f.en=0;startMove(f,ULTM);f.inv=60;f.vx=0;G.cine=70;G.caster=f;snd('ult');G.flash=3;showCut(f);G.cut={f,t:0,pose:POSE.charge.slice(),sig:mkSig(f.ch.torso,0,0,1,1e9,{flip:f.idx===1})};EVT({k:'u',i:f.idx});snd('ve'+f.idx)}
+// 手机自动瞄准：玩家自己放技能或出拳时，先转身面向对手
+function aimAt(f,o){if(G.aim&&f.idx===0&&!f.clone&&o&&Math.abs(o.x-f.x)>4)f.face=o.x>f.x?1:-1}
 function tryAct(f,o,I,only){
   const gr=f.y>=f.gy,sil=f.d.silence>0;
   if(I.qp&&f.en>=100&&gr&&!sil){I.use('q');startUlt(f,o);return 1}
-  if(!sil)for(let i=0;i<4;i++)if(I['k'+i]&&f.cds[i]<=0&&!f.lost[i]){I.use('k'+i);const e=f.ch.lo[i],A=e.a,r=f.ch.res[e.cat],cb=f.ch.cmb;f.cds[i]=f.cdx[i]=Math.round(A.cd*(r?r.cd:1));
+  if(!sil)for(let i=0;i<4;i++)if(I['k'+i]&&f.cds[i]<=0&&!f.lost[i]){I.use('k'+i);aimAt(f,o);const e=f.ch.lo[i],A=e.a,r=f.ch.res[e.cat],cb=f.ch.cmb;f.cds[i]=f.cdx[i]=Math.round(A.cd*(r?r.cd:1));
     let on=cb&&cb.i===i&&f.b[cb.k]>0?cb.t:null;if(on==='dive'&&gr)on=null;f.cmbOn=on;
     if(on==='dive'){startMove(f,DIVEM);f.cmbEl=e;return 1}
     startMove(f,SKM[i][A.pat==='beam'?1:0]);f.skp=posep(i,A);return 1}
   if(only)return 0;
-  if(I.ap){I.use('a');if(gr){startMove(f,A1);return 1}if(!f.airA){f.airA=1;startMove(f,AIR);return 1}return 0}
+  if(I.ap){I.use('a');aimAt(f,o);if(gr){startMove(f,A1);return 1}if(!f.airA){f.airA=1;startMove(f,AIR);return 1}return 0}
   if(I.xp&&!f.dcd){I.use('x');f.dcd=40;let d=I.l?-1:I.r?1:f.face;if(f.d.confuse>0&&(I.l||I.r))d=-d;f.dd=d;setSt(f,'dash');f.vy=0;snd('dash');return 1}
   return 0}
 function boxHit(f,v,h){const x0=f.face>0?f.x+h.x:f.x-h.x-h.w,x1=x0+h.w,y0=f.y+h.y,y1=y0+h.h;
@@ -897,7 +900,7 @@ function applyHit(a,v,h,dir,hx,hy){
     a.en=Math.min(100,a.en+(h.ult?0:h.dmg*.3));v.en=Math.min(100,v.en+h.dmg*.3);
     G.stop=Math.max(G.stop,3);G.shake=Math.max(G.shake,1.5);
     FX.push({k:'ring',x:hx,y:hy,c:'#9fd0ff',l:7,m:7,r:11});burst(hx,hy,5,2.5,['#fff','#9fd0ff'],9,1);snd('block');EVT({k:'g',x:hx|0,y:hy|0});return 2}
-  let d=h.dmg*DM,heavy=h.heavy;const crit=a.b.crit>0;if(a.boss)d*=1.15;if(v.boss)d*=.62;if(h.lim!=null&&a.lost[h.lim])d*=.5;if(a.clone)d*=.6;
+  let d=h.dmg*DM,heavy=h.heavy;const crit=a.b.crit>0;if(G.short)d*=1.6;if(a.boss)d*=1.15;if(v.boss)d*=.62;if(h.lim!=null&&a.lost[h.lim])d*=.5;if(a.clone)d*=.6;
   if(crit){d*=a.b.critV;heavy=1}
   if(a.b.rage>0)d*=a.b.rageV;if(a.d.weaken>0)d*=a.d.weakenV;
   if(v.b.guard>0)d*=v.b.guardV;if(v.b.crit>0)d*=1.2;if(v.b.rage>0)d*=1.25;if(v.d.vuln>0)d*=v.d.vulnV;
@@ -1237,13 +1240,15 @@ function updHud(){{const r=G.f[meI()].en>=100;if(cache.padq!==r){cache.padq=r;co
 
 /* ---------- 流程 ---------- */
 function newRound(){const[a,b]=G.f;[a,b].forEach((f,i)=>{Object.assign(f,{x:STAGE/2+(i?70:-70),y:GY,vx:0,vy:0,face:i?-1:1,hp:MAXHP,stun:0,flash:0,inv:0,took:0,dcd:0,gs:0,airA:0,ai:null,I:NOI,ice:0,sum:0,sumN:0,sumT:0,sumC:0,ftn:0,gy:GY,wound:0,drop:0,bleedA:0});f.lost=[0,0,0,0];f.cds.fill(0);clrB(f);setSt(f,'idle');f.pose=POSE.idle.slice();f.sk=skel(f)});
-  P=[];FX=[];GH=[];SIG=[];SKL=[];PEND=[];PORT=[];DEB=[];PENDC=[];G.cl=[];EVT({k:'r'});ftClear();G.impact=0;G.koUlt=-1;G.cut=null;G.ko=null;G.zoom=1;G.phase='intro';G.pt=0;G.time=120*60;G.stop=G.slow=G.cine=0;G.cam=STAGE/2-W/2;pips()}
+  P=[];FX=[];GH=[];SIG=[];SKL=[];PEND=[];PORT=[];DEB=[];PENDC=[];G.cl=[];EVT({k:'r'});ftClear();G.impact=0;G.koUlt=-1;G.cut=null;G.ko=null;G.zoom=1;G.phase='intro';G.pt=0;G.time=(G.short?60:120)*60;G.stop=G.slow=G.cine=0;G.cam=STAGE/2-W/2;pips()}
 const TR=['transitions/slash-wipe','transitions/diamond-wipe','transitions/iris','transitions/star-iris','transitions/shatter-wipe'];
 function wipe(){const id=pick(TR),m=PFX.reg.effects[id];if(!m)return;const D=m.meta.duration||2;G.trans=mkSig({fx:id,w:320,h:180,ox:0,oy:0,full:true},0,0,1,Math.round(D*20)-1,{})}
 function startMatch(mode,o){if(mode)G.mode=mode;if(o)G.mo=o;o=G.mo||{};G.cpu=G.mode==='cpu';if(G.mode!=='net'){G.net=null;net=null}
   G.auto=!!o.auto;relAll();if(document.activeElement&&document.activeElement.blur&&document.activeElement!==document.body)document.activeElement.blur();
   const wt=net&&net.watch,me=G.net==='guest'?1:0,nm=i=>G.mode==='net'&&!wt?(i===me?'你':'对手'):i===0?'P1':G.mode==='cpu'?(o.daily&&o.arc==null?'今日挑战':o.arc!=null?(o.arc>=ARC.length-1?'BOSS':'第'+((o.arc|0)+1)+'关'):'CPU'):G.mode==='train'?'木桩':'P2';
-  G.daily=G.mode==='cpu'&&!!o.daily&&o.arc==null;const dl=G.daily?dailyLO():null;
+  G.daily=G.mode==='cpu'&&!!o.daily&&o.arc==null;
+  // 手机：单局 60 秒、伤害 ×1.6（相当于血量六成多），碎片时间也能打完；联机两边要一致，所以不改
+  G.short=TCH()&&!G.auto&&['cpu','local'].includes(G.mode);G.aim=TCH()&&!G.auto&&G.mode!=='net';const dl=G.daily?dailyLO():null;
   G.arc=G.mode==='cpu'&&o.arc!=null?{i:clamp(o.arc|0,0,ARC.length-1)}:null;if(G.arc)G.arc.boss=G.arc.i===ARC.length-1;
   const l0=o.lo0||LO[0],l1=o.lo1||(G.daily?dl.lo:G.arc?(G.arc.boss?counterLO(l0):randLO()):G.mode==='cpu'?(SV.rnd?(SV.diff===2?counterLO(l0):randLO()):LO[2]):G.mode==='train'?LO[2]:LO[1]);
   if(!o.lo0){o.lo0=l0;o.lo1=l1}G.stage=THEMES[o.stage]?o.stage:G.daily?dl.stage%THEMES.length:G.arc?G.arc.i%THEMES.length:SV.stage<0?rnd()*THEMES.length|0:SV.stage;buildBg(G.stage);MAPC=MAPS[G.stage]||MAPS[0];setMusic('battle');
@@ -1366,7 +1371,7 @@ function hubInit(){hubF=mkF(mkCh(LO[0],'P1'),0);const s=LO[0].s;hubS=[s[4],s[0],
   const pos=[[40.8,17,'躯干',s[4]],[19.2,47,'左手',s[0]],[62.5,47,'右手',s[1]],[19.2,88.5,'左腿',s[2]],[62.5,88.5,'右腿',s[3]]];
   $('hubl').innerHTML=pos.map(p=>`<span style="left:${p[0]}%;top:${p[1]}%;--k:${p[3].c1}">${p[2]} · ${p[3].name}${mxStar(p[3].fx)}</span>`).join('');
   $('diff').textContent='电脑难度：'+['简单','普通','困难','自动'][SV.diff];$('stg').textContent='场地：'+(SV.stage<0?'随机':THEMES[SV.stage].n);achTxt();
-  {const n=unCount();$('unbar').innerHTML=`元素收集 <i><b style="width:${(n/EL.length*100).toFixed(1)}%"></b></i> ${n} / ${EL.length}`}
+  {const n=unCount();$('unbar').innerHTML=`元素收集 <i><b style="width:${(n/EL.length*100).toFixed(1)}%"></b></i> ${n} / ${EL.length}`+(n<EL.length?`<u>再赢 ${5-SV.w%5} 场，额外送 3 个</u>`:'')}
   dayCheck();$('m7s').textContent=(SV.day.done===today()?'今日已完成，明天再来':'打赢奖励 3 个元素')+' · 连续登录 '+SV.day.streak+' 天';
   $('m6s').textContent=SV.arc>=ARC.length?'已通关 · 再闯一次':SV.arc>0?'最好成绩：打到第 '+(SV.arc+1)+' 关':'连闯六关，最后一关是 Boss'}
 function drawHub(){const fr=G.frame,cx=196,cy=214,c=hubF.ch;
@@ -1439,7 +1444,6 @@ addEventListener('keydown',e=>{if(!kWait||$('help').hidden)return;e.preventDefau
   const old=MAP[kP][kWait][0];for(let p=0;p<2;p++)for(const a of KACT)if(MAP[p][a].includes(c))MAP[p][a]=[old];MAP[kP][kWait]=[c];
   for(let p=0;p<2;p++)for(const a of KACT)MAP[p][a]=[MAP[p][a][0]];keysUsed();kWait=null;relAll();snd('go');saveLO();renderKeys()},true);
 /* ---------- 新手教学：在练习场里一步一步学按键，木桩不会还手 ---------- */
-const TCH=()=>!!(document.body&&document.body.classList&&document.body.classList.contains('touch'));
 const TUT=[['移动',()=>TCH()?'拖动左下角的摇杆左右走动':`按 ${K('l')} / ${K('r')} 左右走动`,(t,a)=>t.mv>90],
   ['跳跃',()=>TCH()?'把摇杆往上推就能跳，可以跳上平台':`按 ${K('u')} 跳起来，可以跳上平台`,(t,a)=>a.y<a.gy-14],
   ['普攻',()=>TCH()?`走近${G.tut&&G.tut.live?'对手':'木桩'}，按住“攻”打中 3 下`:`走近${G.tut&&G.tut.live?'对手':'木桩'}，连按 ${K('a')} 打中 3 下`,(t,a)=>t.hits>=3],
