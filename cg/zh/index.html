@@ -35,7 +35,16 @@ body.cg .stage{touch-action:none}
 #netmsg{overflow-wrap:anywhere;max-width:90cqw}
 .cghint{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);background:rgba(8,7,20,.78);border:1px solid #6d679c;color:#fff;font-size:max(10px,1.6cqw);padding:.6cqw 1.4cqw;white-space:nowrap;pointer-events:none;z-index:6;animation:cgfade 9s linear forwards}
 @keyframes cgfade{0%,85%{opacity:1}100%{opacity:0}}
-body.cg .stage{width:min(100vw,calc(100vh*16/9));height:auto;border:0}
+body.cg .stage{width:100vw;height:auto;border:0}
+body.cg{--cy:max(0px,calc((56.25vw - 100vh)/2))}
+body.cg .hud{inset:calc(1.6cqw + var(--cy)) 2cqw auto}
+body.cg .ov{transform:scale(var(--ovk,1))}body.cg.crop #hubl{display:none}
+body.cg .combo{top:calc(21cqw + var(--cy))}
+body.cg .cut{bottom:calc(9.5% + var(--cy))}
+body.cg .tut{top:calc(20% + var(--cy))}body.cg .tut.live{top:auto;bottom:calc(4% + var(--cy))}
+body.cg .toast{top:calc(22% + var(--cy))}
+body.cg .cghint{bottom:calc(7% + var(--cy))}
+.rwb{display:inline-flex;align-items:center;gap:.6cqw;border-color:#6fe36a!important;color:#6fe36a}.rwb svg{width:max(12px,1.8cqw);height:auto}.rwb:disabled{opacity:.55;border-color:#3a3560!important;color:var(--dim)}
 body.cg header{position:fixed;right:8px;bottom:8px;z-index:20;opacity:.55}
 body.cg header:hover{opacity:1}
 body.cg header button,body.cg .vol{font-size:11px;padding:3px 7px}
@@ -313,7 +322,7 @@ kbd{font-family:var(--fd);font-size:9px;background:#0b0a17;border:1px solid var(
     <div class="ov hub" id="hub">
       <div id="hubl"></div>
       <div class="title"><h2>元素<br><em>火柴人</em></h2><p>给左右手、左右腿各装一种元素，再选一种做躯干大招。</p><p id="hubmsg"></p><p class="unbar" id="unbar"></p>
-        <div class="minis"><button class="mini" id="diff">电脑难度：普通</button><button class="mini" id="stg">场地：随机</button><button class="mini" id="helpb">操作说明</button><button class="mini" id="tutb">新手教学</button><button class="mini" id="langb">English</button><button class="mini" id="m5">练习场</button><button class="mini" id="achb">成就</button><button class="mini" id="qb">每日任务</button></div></div>
+        <div class="minis"><button class="mini" id="diff">电脑难度：普通</button><button class="mini" id="stg">场地：随机</button><button class="mini" id="helpb">操作说明</button><button class="mini" id="tutb">新手教学</button><button class="mini" id="langb">English</button><button class="mini" id="m5">练习场</button><button class="mini" id="achb">成就</button><button class="mini" id="qb">每日任务</button><button class="mini rwb" id="rwb" hidden><svg viewBox="0 0 24 16" aria-hidden="true"><rect x="1" y="2" width="15" height="12" rx="2" fill="currentColor"/><path d="M17 6l6-3.5v11L17 10z" fill="currentColor"/></svg><span id="rwt"></span></button></div></div>
       <nav class="modes">
         <button id="m6" class="main" style="--c:#ff4a6a"><b>开始闯关</b><span id="m6s">连闯六关，最后一关是 Boss</span></button>
         <button id="m7" style="--c:#ffd84a"><b>每日挑战</b><span id="m7s">打赢奖励 3 个元素</span></button>
@@ -366,7 +375,7 @@ kbd{font-family:var(--fd);font-size:9px;background:#0b0a17;border:1px solid var(
     <div class="toast" id="toast" hidden></div>
     <div class="ov" id="res" hidden>
       <h2 id="rest"></h2>
-      <div class="row"><button id="revad" hidden>▶ 看广告：再战一回合</button><button id="again">再来一局</button><button id="resel">返回大厅</button></div>
+      <div class="row"><button id="again">再来一局</button><button id="resel">返回大厅</button></div>
     </div>
   </div>
 
@@ -512,6 +521,7 @@ let sfxBus=null,musBus=null,noiseB=null;const LIVE={};
 const TGT=k=>k==='hit'||k==='kick'?.2:k==='heavy'?.26:k==='sw'||k==='sw2'||k==='dash'?.07:k==='block'?.12:k==='sel'||k==='go'?.06:k==='win'||k==='lose'?.12:k==='ult'?.15:k==='buff'?.1:k==='revive'?.14:
   /^v[ode]\d$/.test(k)?.13:k==='x_thunder'||k==='el_explosions'?.24:k==='el_critters'||k==='el_spawn'?.13:k[1]==='_'&&k[0]==='s'?.14:.19;
 const CAP=k=>k==='x_thunder'?1.15:k==='el_lightning'?1:k.startsWith('el_')||k[1]==='_'?1.6:0;
+let ADON=false;for(const ev of['touchend','pointerdown','keydown'])addEventListener(ev,()=>{try{if(AC&&AC.state==='suspended'&&!ADON)AC.resume()}catch(e){}},true);
 function initAudio(){if(AC)return audioP;try{const A=window.AudioContext||window.webkitAudioContext;AC=new A();master=AC.createGain();master.gain.value=CGM?0:SV.vol;
     sfxBus=AC.createGain();musBus=AC.createGain();musBus.gain.value=SV.mus?.5:0;sfxBus.connect(master);musBus.connect(master);
     const lim=AC.createDynamicsCompressor();lim.threshold.value=-10;lim.ratio.value=12;lim.attack.value=.002;lim.release.value=.12;master.connect(lim);lim.connect(AC.destination);
@@ -689,7 +699,8 @@ const ACH=[['first','初战告捷','赢一场人机对战'],['hard','以弱胜�
   ['ultko','一锤定音','用大招打出 K.O.'],['sever','四肢全断','一回合内打断对手全部四肢'],['combo','融会贯通','打出一次组合技'],['master','炉火纯青','把一个元素练到三星'],
   ['clear','一路通关','打通闯关模式'],['online','线上高手','赢一场联机对战']];
 const TCH=()=>!!(document.body&&document.body.classList&&document.body.classList.contains('touch'));
-let SVKEYS=null,KEYSREADY=false;
+let SVKEYS=null,KEYSREADY=false,MYNAME='';
+const escH=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),cleanName=t=>typeof t==='string'?escH(t.trim().slice(0,16)):'';
 // 元素解锁：开局只有三套默认搭配里的元素，每赢一场随机解锁一个；每日挑战和连续登录另有奖励
 const START=new Set(DEF.flatMap(a=>a.slice(0,5)));
 function unBase(){for(const k of START)SV.un[k]=1;if(typeof LO!=='undefined')for(const l of LO)for(const e of l.s)SV.un[e.fx]=1}
@@ -935,7 +946,8 @@ function applyHit(a,v,h,dir,hx,hy){
     FX.push({k:'ring',x:hx,y:hy,c:'#9fd0ff',l:7,m:7,r:11});burst(hx,hy,5,2.5,['#fff','#9fd0ff'],9,1);snd('block');EVT({k:'g',x:hx|0,y:hy|0});return 2}
   let d=h.dmg*DM,heavy=h.heavy;const crit=a.b.crit>0;if(G.short)d*=1.6;
   // 新玩家的第一关：对手受到双倍伤害，半分钟左右就能赢下第一场
-  if(G.arc&&G.arc.i===0&&SV.w<2&&v.idx===1&&!G.auto)d*=2;if(a.boss)d*=1.15;if(v.boss)d*=.62;if(h.lim!=null&&a.lost[h.lim])d*=.5;if(a.clone)d*=.6;
+  if(G.arc&&G.arc.i===0&&SV.w<2&&v.idx===1&&!G.auto)d*=2;
+  if(G.tut&&G.tut.live&&a.idx===1)d*=.35;   // 新手提示期间电脑打人很轻if(a.boss)d*=1.15;if(v.boss)d*=.62;if(h.lim!=null&&a.lost[h.lim])d*=.5;if(a.clone)d*=.6;
   if(crit){d*=a.b.critV;heavy=1}
   if(a.b.rage>0)d*=a.b.rageV;if(a.d.weaken>0)d*=a.d.weakenV;
   if(v.b.guard>0)d*=v.b.guardV;if(v.b.crit>0)d*=1.2;if(v.b.rage>0)d*=1.25;if(v.d.vuln>0)d*=v.d.vulnV;
@@ -1113,7 +1125,9 @@ function updParts(){
 /* ---------- 电脑对手 ---------- */
 function inRange(f,o,A){if(A.pat==='portal')return rnd()<.25;const d=Math.abs(o.x-f.x);if(A.pat==='act'||A.pat==='cast'||A.pat==='beam')return d<A.x1*.9;return d<280}
 function aiInput(f,o){const I={l:0,r:0,d:0,up:0,uh:0,ap:0,xp:0,qp:0,k0:0,k1:0,k2:0,k3:0,use(){}};
-  const DF=G.auto?([.4,1,1.8][SV.diff]||1):G.arc?ARC[G.arc.i]*(SV.w<3?.5:1):G.daily?clamp(SV.adf+.2,.4,2):SV.diff===3?SV.adf:[.4,1,1.8][SV.diff],A=f.ai||(f.ai={t:0,mv:0,g:0}),dx=o.x-f.x,ad=Math.abs(dx),dir=dx>0?1:-1,r=rnd(),sil=f.d.silence>0,busy=o.st==='down'||o.st==='getup'||o.st==='dead';
+  // 新手提示还在显示时：前三条提示（移动、跳、普攻）期间电脑站着不动，像木桩一样
+  if(G.tut&&G.tut.live&&f.idx===1&&!f.clone&&G.tut.i<3)return I;
+  const DF=G.tut&&G.tut.live&&f.idx===1?.2:G.auto?([.4,1,1.8][SV.diff]||1):G.arc?ARC[G.arc.i]*(SV.w<3?.5:1):G.daily?clamp(SV.adf+.2,.4,2):SV.diff===3?SV.adf:[.4,1,1.8][SV.diff],A=f.ai||(f.ai={t:0,mv:0,g:0}),dx=o.x-f.x,ad=Math.abs(dx),dir=dx>0?1:-1,r=rnd(),sil=f.d.silence>0,busy=o.st==='down'||o.st==='getup'||o.st==='dead';
   if(A.g>0){A.g--;I.d=1;return I}
   const wz=SKL.find(k=>k.own!==f&&!k.A.self&&k.hi===0&&skIn(k,f));   // 站在落点预警框里：走开或闪开
   if(wz&&f.st!=='atk'&&rnd()<.35*DF){I[f.x<wz.s.x?'l':'r']=1;if(!f.dcd&&rnd()<.4)I.xp=1;return I}
@@ -1278,9 +1292,9 @@ function newRound(){const[a,b]=G.f;[a,b].forEach((f,i)=>{Object.assign(f,{x:STAG
   P=[];FX=[];GH=[];SIG=[];SKL=[];PEND=[];PORT=[];DEB=[];PENDC=[];G.cl=[];EVT({k:'r'});ftClear();G.impact=0;G.koUlt=-1;G.cut=null;G.ko=null;G.zoom=1;G.phase='intro';G.pt=0;G.time=(G.short?60:120)*60;G.stop=G.slow=G.cine=0;G.cam=STAGE/2-W/2;pips()}
 const TR=['transitions/slash-wipe','transitions/diamond-wipe','transitions/iris','transitions/star-iris','transitions/shatter-wipe'];
 function wipe(){const id=pick(TR),m=PFX.reg.effects[id];if(!m)return;const D=m.meta.duration||2;G.trans=mkSig({fx:id,w:320,h:180,ox:0,oy:0,full:true},0,0,1,Math.round(D*20)-1,{})}
-function startMatch(mode,o){cgPlay(true);document.body.classList.add('ingame');G.revUsed=0;$('revad').hidden=true;if(mode)G.mode=mode;if(o)G.mo=o;o=G.mo||{};G.cpu=G.mode==='cpu';if(G.mode!=='net'){G.net=null;net=null}
+function startMatch(mode,o){document.body.classList.add('ingame');cgLastTut=!!(G.tut&&G.tut.live);if(mode)G.mode=mode;if(o)G.mo=o;o=G.mo||{};G.cpu=G.mode==='cpu';if(G.mode!=='net'){G.net=null;net=null}
   G.auto=!!o.auto;relAll();if(document.activeElement&&document.activeElement.blur&&document.activeElement!==document.body)document.activeElement.blur();
-  const wt=net&&net.watch,me=G.net==='guest'?1:0,nm=i=>G.mode==='net'&&!wt?(i===me?'你':'对手'):i===0?'P1':G.mode==='cpu'?(o.daily&&o.arc==null?'今日挑战':o.arc!=null?(o.arc>=ARC.length-1?'BOSS':'第'+((o.arc|0)+1)+'关'):'CPU'):G.mode==='train'?'木桩':'P2';
+  const wt=net&&net.watch,me=G.net==='guest'?1:0,nm=i=>G.mode==='net'&&!wt?(i===me?(cleanName(MYNAME)||'你'):(net&&net.opp||'对手')):i===0?'P1':G.mode==='cpu'?(o.daily&&o.arc==null?'今日挑战':o.arc!=null?(o.arc>=ARC.length-1?'BOSS':'第'+((o.arc|0)+1)+'关'):'CPU'):G.mode==='train'?'木桩':'P2';
   G.daily=G.mode==='cpu'&&!!o.daily&&o.arc==null;
   // 手机：单局 60 秒、伤害 ×1.6（相当于血量六成多），碎片时间也能打完；联机两边要一致，所以不改
   G.short=TCH()&&!G.auto&&['cpu','local'].includes(G.mode);G.aim=TCH()&&!G.auto&&G.mode!=='net';const dl=G.daily?dailyLO():null;
@@ -1288,11 +1302,11 @@ function startMatch(mode,o){cgPlay(true);document.body.classList.add('ingame');G
   const l0=o.lo0||LO[0],l1=o.lo1||(G.daily?dl.lo:G.arc?(G.arc.boss?counterLO(l0):randLO()):G.mode==='cpu'?(SV.rnd?(SV.diff===2?counterLO(l0):randLO()):LO[2]):G.mode==='train'?LO[2]:LO[1]);
   if(!o.lo0){o.lo0=l0;o.lo1=l1}G.stage=THEMES[o.stage]?o.stage:G.daily?dl.stage%THEMES.length:G.arc?G.arc.i%THEMES.length:SV.stage<0?rnd()*THEMES.length|0:SV.stage;buildBg(G.stage);MAPC=MAPS[G.stage]||MAPS[0];setMusic('battle');
   G.use={};G.tut=o.tut?{i:0,t:0,x0:0,mv:0,hits:0,cast:0,gd:0,done:0}:!SV.tut&&G.mode==='cpu'&&!G.auto?{live:1,i:tutI,t:0,x0:0,mv:0,hits:0,cast:0,gd:0,done:0}:null;
-  G.f=[mkF(mkCh(l0,nm(0)),0),mkF(mkCh(l1,nm(1)),1)];G.f[0].lo=l0;G.f[1].lo=l1;if(G.arc&&G.arc.boss||G.daily&&SV.w>=5)G.f[1].boss=1;G.koUlt=-1;G.cl=[];G.wins=[0,0];G.round=1;
+  G.f=[mkF(mkCh(l0,nm(0)),0),mkF(mkCh(l1,nm(1)),1)];G.f[0].lo=l0;G.f[1].lo=l1;if(G.arc&&G.arc.boss||G.daily&&SV.w>=5)G.f[1].boss=1;if(G.tut&&G.tut.live)G.f[1].ch.spd*=.55;G.koUlt=-1;G.cl=[];G.wins=[0,0];G.round=1;
   if(G.tut)tutShow();else $('tut').hidden=true;$('stage').classList.remove('tall');$('hub').hidden=$('shop').hidden=$('res').hidden=$('help').hidden=$('net').hidden=true;hud.hidden=false;buildHud();newRound();wipe()}
 function endRound(){const[a,b]=G.f,w=a.hp>b.hp?0:b.hp>a.hp?1:-1;if(w>=0)G.wins[w]++;pips();
   {const me=meI(),f=G.f[me];if(w===me&&G.net!=='guest'){if(f.hp>=MAXHP)ach('perfect');if(f.hp<MAXHP*.1)ach('comeback');if(G.koUlt===me)ach('ultko');if(G.f[1-me].lost.every(x=>x))ach('sever')}}
-  if(w>=0&&G.wins[w]>=(G.arc||G.daily?1:2)){G.phase='over';if(w===0&&G.mode==='cpu'){ach('first');if(!G.arc&&SV.diff===2)ach('hard')}if(w===0&&G.mode==='net')ach('online');cgPlay(false);EVT({k:'o',w});snd(G.mode==='cpu'&&w===1?'lose':'win');$('rest').innerHTML=`<em>${G.f[w].ch.name}</em> 获胜`+mxEnd(w);$('again').hidden=!!(net&&net.watch);$('again').textContent='再来一局';if(G.arc)arcEnd(w);if(G.daily)dailyEnd(w);$('tut').hidden=true;$('res').hidden=false;cgRevOffer(w)}
+  if(w>=0&&G.wins[w]>=(G.arc||G.daily?1:2)){G.phase='over';if(w===0&&G.mode==='cpu'){ach('first');if(!G.arc&&SV.diff===2)ach('hard')}if(w===0&&G.mode==='net')ach('online');cgPlay(false);EVT({k:'o',w});snd(G.mode==='cpu'&&w===1?'lose':'win');$('rest').innerHTML=`<em>${G.f[w].ch.name}</em> 获胜`+mxEnd(w);$('again').hidden=!!(net&&net.watch);$('again').textContent='再来一局';if(G.arc)arcEnd(w);if(G.daily)dailyEnd(w);$('tut').hidden=true;$('res').hidden=false}
   else{if(w>=0)G.round++;newRound()}}
 // 每日挑战结算：当天第一次打赢再多送两个元素
 function dailyEnd(w){const q=$('rest').querySelectorAll?[...$('rest').querySelectorAll('.mxup,.tmr')].map(x=>x.outerHTML).join(''):'',td=today();let ex='';
@@ -1303,7 +1317,7 @@ function arcEnd(w){const i=G.arc.i,lo0=G.mo&&G.mo.lo0,last=i===ARC.length-1,up=$
   if(w===0){qAdd('arc');if(i+1>SV.arc){SV.arc=i+1;saveLO()}if(last){ach('clear');$('rest').innerHTML='<em>通关！</em>六关全部打通'+up;$('again').textContent='再闯一次';G.mo={arc:0,lo0}}
     else{$('rest').innerHTML=`<em>第 ${i+1} 关</em> 通过`+up;$('again').textContent=i+1===ARC.length-1?'挑战 Boss':'下一关';G.mo={arc:i+1,lo0}}}
   else{$('rest').innerHTML=`止步 <em>第 ${i+1} 关</em>`+up;$('again').textContent='重试本关';G.mo={arc:i,lo0}}}
-function toHub(){cgPlay(false);cgHideInvite();cgLeft();document.body.classList.remove('ingame');$('tut').hidden=true;tutCb=null;G.tut=null;if(NR){NR.leave().catch(()=>{});NR=null}net=null;G.net=null;G.mode=null;G.mo=null;$('stage').classList.remove('tall');if(G.phase!=='menu')wipe();G.phase='menu';G.ko=null;G.zoom=1;setMusic('hub');hud.hidden=true;$('res').hidden=$('shop').hidden=$('help').hidden=$('net').hidden=$('achv').hidden=$('qv').hidden=true;$('hub').hidden=false;msg.classList.remove('show');cut.classList.remove('show');$('c1').classList.remove('on');$('c2').classList.remove('on');ftClear();hubInit()}
+function toHub(){cgPlay(false);cgHideInvite();cgLeft();document.body.classList.remove('ingame');setTimeout(cgRwUpd,0);$('tut').hidden=true;tutCb=null;G.tut=null;if(NR){NR.leave().catch(()=>{});NR=null}net=null;G.net=null;G.mode=null;G.mo=null;$('stage').classList.remove('tall');if(G.phase!=='menu')wipe();G.phase='menu';G.ko=null;G.zoom=1;setMusic('hub');hud.hidden=true;$('res').hidden=$('shop').hidden=$('help').hidden=$('net').hidden=$('achv').hidden=$('qv').hidden=true;$('hub').hidden=false;msg.classList.remove('show');cut.classList.remove('show');$('c1').classList.remove('on');$('c2').classList.remove('on');ftClear();hubInit()}
 
 function step(){
   G.frame++;
@@ -1475,7 +1489,7 @@ function renderKeys(){$('kp0').classList.toggle('on',kP===0);$('kp1').classList.
 $('hgrid').addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('button[data-a]');if(!b)return;snd('sel');kWait=kWait===b.dataset.a?null:b.dataset.a;renderKeys()});
 $('kp0').addEventListener('click',()=>{kP=0;kWait=null;snd('sel');renderKeys()});$('kp1').addEventListener('click',()=>{kP=1;kWait=null;snd('sel');renderKeys()});
 $('kreset').addEventListener('click',()=>{for(let p=0;p<2;p++)Object.assign(MAP[p],JSON.parse(JSON.stringify(MAPDEF[p])));keysUsed();kWait=null;snd('sel');saveLO();renderKeys()});
-addEventListener('keydown',e=>{if(!kWait||$('help').hidden)return;e.preventDefault();e.stopImmediatePropagation();const c=e.code;if(c==='Escape'||!/^[A-Za-z0-9]{1,20}$/.test(c)||/^(Meta|OS|Tab|F\d)/.test(c)){kWait=null;renderKeys();return}
+addEventListener('keydown',e=>{if(!kWait||$('help').hidden||e.code==='Escape')return;e.preventDefault();e.stopImmediatePropagation();const c=e.code;if(!/^[A-Za-z0-9]{1,20}$/.test(c)||/^(Meta|OS|Tab|F\d)/.test(c)){kWait=null;renderKeys();return}
   const old=MAP[kP][kWait][0];for(let p=0;p<2;p++)for(const a of KACT)if(MAP[p][a].includes(c))MAP[p][a]=[old];MAP[kP][kWait]=[c];
   for(let p=0;p<2;p++)for(const a of KACT)MAP[p][a]=[MAP[p][a][0]];keysUsed();kWait=null;relAll();snd('go');saveLO();renderKeys()},true);
 /* ---------- 新手教学：在练习场里一步一步学按键，木桩不会还手 ---------- */
@@ -1556,24 +1570,24 @@ function guestStep(){const[a,b]=G.f,s=net.snap;
 function leaveNet(m){toHub();$('hubmsg').textContent=m||''}
 function netMsg(t){$('netmsg').textContent=t}
 function netLo(){const v=parseInt($('npre').value,10);return(v>=0&&SV.pre[v]&&loFrom(SV.pre[v].ids))||LO[0]}
-function startNet(role,ids,peer,ex){cgHideInvite();if(G.netCode)cgRoom(G.netCode,false);ex=ex||{};net={role,peer,watch:role==='watch',seq:0,sn:0,eid:0,ev:[],q:[],qid:0,pid:0,pb:{},h:[0,0,0],last:G.frame,snap:null};G.net=role==='host'?'host':'guest';
+function startNet(role,ids,peer,ex){cgHideInvite();if(G.netCode)cgRoom(G.netCode,false);ex=ex||{};net={opp:cleanName(ex.nm),role,peer,watch:role==='watch',seq:0,sn:0,eid:0,ev:[],q:[],qid:0,pid:0,pb:{},h:[0,0,0],last:G.frame,snap:null};G.net=role==='host'?'host':'guest';
   const ol=loFrom(ids)||randLO(),mine=NLO||LO[0],l1=ex.lo1&&loFrom(ex.lo1);
   startMatch('net',role==='host'?{lo0:mine,lo1:ol}:{lo0:ol,lo1:l1||(role==='watch'?randLO():mine),stage:ex.stage})}
 async function netJoin(code,role){G.netCode=code;if(role===true)role='host';else if(!role)role='guest';NLO=netLo();
   let room;try{if(NR){await NR.leave().catch(()=>{});NR=null}room=NR=await ROOM.join('duel-'+code,role)}catch(e){NR=null;const m=e&&e.message;netMsg(m==='nohost'?'没有找到房间 '+code+'：确认房间码，或者让对方先点“创建房间”。':m==='taken'?'这个房间码正在被使用，请再点一次“创建房间”换一个。':m==='blocked'?'这个页面里连不上联机服务器，请打开网站版再试。':'连不上房间，请检查网络后再试。');return}
-  let me=null,started=false,hiT=0;const net0=G.frame;const go=to=>room.emit('go',{lo:loIds(G.mo.lo0),lo1:loIds(G.mo.lo1),to,stage:G.stage}).catch(()=>{});
+  let me=null,started=false,hiT=0;const net0=G.frame;const go=to=>room.emit('go',{lo:loIds(G.mo.lo0),lo1:loIds(G.mo.lo1),to,stage:G.stage,nm:MYNAME.slice(0,16)}).catch(()=>{});
   if(role==='host'){netMsg('房间码 '+code+' · 等待对手加入…（别人也能用这个码观战）');cgInvite(code);
     room.on('in',m=>{if(!net||G.net!=='host'||m.peer!==net.peer||!m.data)return;const d=m.data;net.last=G.frame;if(Array.isArray(d.h))net.h=d.h;if(d.rm)net.rmG=1;
       if(Array.isArray(d.p))for(const q of d.p)if(Array.isArray(q)&&q[0]>net.pid&&ACT.includes(q[1])){net.pid=q[0];net.pb[q[1]]=8}});
     room.on('hi',m=>{if(m.isMe||!m.data||!Array.isArray(m.data.lo))return;
-      if(!started){started=true;startNet('host',m.data.lo,m.peer);go(m.peer)}
+      if(!started){started=true;startNet('host',m.data.lo,m.peer,{nm:m.data.nm});go(m.peer)}
       else if(net&&G.net==='host'&&G.frame-net.last>120){net.peer=m.peer;net.last=G.frame;net.pid=0;go(m.peer)}})}   // 对手刷新页面后用同一个房间码回来
   else{const watch=role==='watch';netMsg((watch?'正在进入观战 ':'正在加入房间 ')+code+'…');
     room.on('st',m=>{if(!net||G.net!=='guest'||m.peer!==net.peer)return;const d=m.data;if(d&&d.n>net.sn&&Array.isArray(d.f)){net.sn=d.n;net.snap=d}});
     if(watch)room.on('meta',m=>{if(m.isMe||started||!m.data||!Array.isArray(m.data.lo0))return;started=true;startNet('watch',m.data.lo0,m.peer,{lo1:m.data.lo1,stage:m.data.stage})});
     else{room.on('hi',m=>{if(m.isMe&&m.sameTab)me=m.peer});
-      room.on('go',m=>{if(m.isMe||started||!m.data)return;if(!me||m.data.to!==me){if(me&&G.frame-(net0||0)>200)netMsg('这个房间已经有人了，可以改点“观战”。');return}clearInterval(hiT);started=true;startNet('guest',m.data.lo,m.peer,{lo1:m.data.lo1,stage:m.data.stage})});
-      const hi=()=>{if(NR!==room||started){clearInterval(hiT);return}room.emit('hi',{lo:loIds(NLO)}).catch(()=>{})};hi();hiT=setInterval(hi,1200)}}}
+      room.on('go',m=>{if(m.isMe||started||!m.data)return;if(!me||m.data.to!==me){if(me&&G.frame-(net0||0)>200)netMsg('这个房间已经有人了，可以改点“观战”。');return}clearInterval(hiT);started=true;startNet('guest',m.data.lo,m.peer,{lo1:m.data.lo1,stage:m.data.stage,nm:m.data.nm})});
+      const hi=()=>{if(NR!==room||started){clearInterval(hiT);return}room.emit('hi',{lo:loIds(NLO),nm:MYNAME.slice(0,16)}).catch(()=>{})};hi();hiT=setInterval(hi,1200)}}}
 $('m3').addEventListener('click',()=>{initAudio();snd('sel');$('hub').hidden=true;$('net').hidden=false;
   const sl=$('npre');sl.innerHTML='';[['-1','用玩家 1 当前的搭配']].concat(SV.pre.map((q,i)=>[String(i),'预设：'+q.n])).forEach(q=>{const o=document.createElement('option');o.value=q[0];o.textContent=q[1];sl.appendChild(o)});
   netMsg('一人创建房间，把四位房间码告诉对方；对方输入后加入，其他人可以用同一个码观战。'+(ROOM===P2P?'':' 在 Claude 里联机，对方必须登录 Claude，并且被你在分享菜单里加为“可互动”成员。'))});
@@ -1615,7 +1629,7 @@ if(window.claude&&window.claude.use)window.claude.use('room').then(r=>{if(r){ROO
 else useP2P();
 $('m4').addEventListener('click',()=>{initAudio();snd('sel');openShop()});
 $('again').addEventListener('click',()=>{snd('sel');if(G.net&&net){if(net.watch)return;if(G.net==='host')net.rmH=1;else net.rm=1;$('again').textContent='已准备，等对手…';return}cgMid(()=>startMatch(null,null))});
-$('resel').addEventListener('click',()=>{snd('sel');if(G.phase==='over'&&!G.net)cgMid(toHub);else toHub()});
+$('resel').addEventListener('click',()=>{snd('sel');toHub()});
 $('toMenu').addEventListener('click',toHub);
 $('mute').addEventListener('click',e=>{muted=!muted;e.currentTarget.textContent='音效：'+(muted?'关':'开')});
 $('musb').textContent='音乐：'+(SV.mus?'开':'关');$('vol').value=Math.round(SV.vol*100);
@@ -1632,7 +1646,7 @@ let last=0,acc=0,slowN=0,lowFx=false,skipR=0;
 const ERRS=[];function logErr(e,where){try{const m=(where+': '+(e&&(e.stack||e.message)||e)).slice(0,500);if(ERRS.length<20)ERRS.push(m);console.warn(m);localStorage.setItem('duel-err',JSON.stringify(ERRS))}catch(_){}}
 addEventListener('error',e=>logErr(e.error||e.message,'window'));addEventListener('unhandledrejection',e=>logErr(e.reason,'promise'));
 function loop(ts){requestAnimationFrame(loop);try{loop0(ts)}catch(e){logErr(e,'loop');acc=0}}
-function loop0(ts){gpPoll();padRepeat();const dt=Math.min(60,ts-last);last=ts;acc+=dt;
+function loop0(ts){gpPoll();padRepeat();if(window.__fh)window.__fh();const dt=Math.min(60,ts-last);last=ts;acc+=dt;
   if(G.phase==='fight'&&!document.hidden){slowN=clamp(slowN+(dt>26?1:-.25),0,200);if(!lowFx&&slowN>=120){lowFx=true;window.__lowFx=1}}
   let n=0;while(acc>=16.667&&n<4){step();acc-=16.667;n++}if(n&&!(lowFx&&(skipR^=1)))render()}
 requestAnimationFrame(loop);
@@ -1646,8 +1660,11 @@ cgTouch(typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches);
   // progress (loadouts, presets, mastery, settings) follows logged-in players between devices
   try{if(S.data){const c=S.data.getItem('duel-v2');if(c&&c!==saveStr()){if(loadSV(c)){if(master)master.gain.value=CGM?0:SV.vol;if(G.phase==='menu')hubInit()}}else if(!c)S.data.setItem('duel-v2',saveStr())}}catch(e){}
   const si=S.user&&S.user.systemInfo,dt=si&&si.device&&si.device.type;if(dt)cgTouch(dt!=='desktop');
+  // language: follow the CrazyGames locale unless the player chose one with the language button
+  
+  try{const u=await S.user.getUser();if(u&&u.username)MYNAME=String(u.username)}catch(e){}
+  try{S.ad&&S.ad.hasAdblock&&S.ad.hasAdblock().then(b=>{cgAdblock=!!b;cgRwUpd()}).catch(()=>{})}catch(e){}
   cgMute(S.game.settings&&S.game.settings.muteAudio);S.game.addSettingsChangeListener(st=>cgMute(st&&st.muteAudio));
-  if(cgPlaying){cgPlaying=false;cgPlay(true)}
   // multiplayer: join from an invite link, open a room straight away for instant multiplayer, and follow joins while running
   const ip=S.game.getInviteParam('roomCode');
   if(ip)cgJoin({roomCode:ip});else if(S.game.isInstantMultiplayer){if(G.phase!=='menu')toHub();$('hub').hidden=true;$('net').hidden=false;netJoin(String(1000+(Math.random()*9000|0)),'host')}else cgQuick();
@@ -1665,18 +1682,35 @@ function cgInvite(code){cgRoom(code,true);try{if(!CGSDK)return;const l=CGSDK.gam
   netMsg('房间码 '+code+' · 等待对手…也可以点游戏下方的“Invite friends”邀请好友。')}catch(e){}}
 function cgHideInvite(){try{if(CGSDK)CGSDK.game.hideInviteButton()}catch(e){}}
 function cgJoin(p){const c=String(p&&p.roomCode||'');if(!/^\d{4}$/.test(c)||!ROOM)return;if(G.phase!=='menu')toHub();$('hub').hidden=true;$('help').hidden=true;$('net').hidden=false;netJoin(c,'guest')}
-// Ads: a midgame ad at a natural break between matches, and an optional rewarded ad for one more round after losing to the CPU.
-// The game's sound is paused while an ad plays.
-const CGADS=false;let cgAdT=Date.now();
-function cgAd(type,ok,fail){if(!CGADS||!CGSDK||!CGSDK.ad){if(fail)fail();return}let done=0;const end=f=>{if(done)return;done=1;try{if(AC)AC.resume()}catch(e){}if(f)f()};
-  try{CGSDK.ad.requestAd(type,{adStarted:()=>{try{if(AC)AC.suspend()}catch(e){}},adFinished:()=>end(ok),adError:()=>end(fail)})}catch(e){end(fail)}}
-function cgMid(fn){if(!CGADS||!CGSDK||G.net||Date.now()-cgAdT<180000){fn();return}cgAdT=Date.now();cgAd('midgame',fn,fn)}
-function cgRevOffer(w){$('revad').hidden=!(CGADS&&CGSDK&&CGSDK.ad&&G.mode==='cpu'&&w===1&&!G.revUsed)}
-$('revad').addEventListener('click',()=>{snd('sel');const b=$('revad');b.disabled=true;
-  cgAd('rewarded',()=>{b.disabled=false;b.hidden=true;G.revUsed=1;G.wins[1]--;G.round++;G.use={};$('res').hidden=true;cgPlay(true);newRound()},()=>{b.disabled=false;b.hidden=true})});
+// Gameplay events: "playing" only while the player can actually fight. Intros, K.O. slow-motion, ultimate cut-ins,
+// result screens, menus and the controls screen all count as breaks. Focus changes are left to the SDK.
+let cgLastTut=false;
+// a change is reported once it has lasted 1/3 second, and calls are at least 1.1 s apart (the SDK throttles faster calls)
+let cgWant=false,cgSince=0,cgLastCall=0;
+window.__fh=()=>{const on=G.phase==='fight'&&!G.cine&&!G.ko&&$('res').hidden&&$('help').hidden&&$('qv').hidden&&$('achv').hidden&&!ADON;
+  if(on!==cgWant){cgWant=on;cgSince=0}else cgSince++;if(cgWant!==cgPlaying&&cgSince>=20&&Date.now()-cgLastCall>1100){cgLastCall=Date.now();cgPlay(cgWant)}};
+// Ads. Midgame: only at natural breaks (restarting a match or going to the next stage), never on menu buttons, never
+// online and never right after the first-time tutorial fight. CrazyGames applies its own frequency limit.
+// Rewarded: a separate optional button in the menu with a video icon; it gives 2 new elements and then waits 5 minutes.
+// While an ad plays the game is silent and nothing moves.
+const CGADS=true;let cgAdblock=false,cgMatches=0;
+function cgAd(type,ok,fail){if(!CGADS||!CGSDK||!CGSDK.ad){if(fail)fail();return}let done=0;const end=f=>{if(done)return;done=1;ADON=false;try{if(AC)AC.resume()}catch(e){}if(f)f()};
+  try{CGSDK.ad.requestAd(type,{adStarted:()=>{ADON=true;try{if(AC)AC.suspend()}catch(e){}},adFinished:()=>end(ok),adError:e=>end(()=>fail&&fail(e))})}catch(e){end(fail)}}
+function cgMid(fn){cgMatches++;if(!CGADS||!CGSDK||G.net||cgLastTut||cgMatches<2){fn();return}cgAd('midgame',fn,fn)}
+const RWCD=300000,rwLeft=()=>{let t=0;try{t=+localStorage.getItem('duel-rw')||0}catch(e){}return Math.max(0,t+RWCD-Date.now())};
+function cgRwUpd(){const b=$('rwb');if(!b)return;const show=CGADS&&!!CGSDK&&!!CGSDK.ad&&!cgAdblock&&EL.some(e=>!isUn(e));b.hidden=!show;if(!show)return;const l=rwLeft();
+  b.disabled=l>0||b.dataset.busy==='1';$('rwt').textContent=l>0?'下次视频 '+Math.floor(l/60000)+':'+String(Math.ceil(l/1000)%60).padStart(2,'0'):'看视频：送 2 个元素'}
+setInterval(()=>{if(G.phase==='menu')cgRwUpd()},1000);
+$('rwb').addEventListener('click',()=>{const b=$('rwb');if(b.disabled||rwLeft()>0)return;snd('sel');b.dataset.busy='1';cgRwUpd();
+  cgAd('rewarded',()=>{b.dataset.busy='';try{localStorage.setItem('duel-rw',String(Date.now()))}catch(e){}const got=unlockN(2);saveLO();
+      toast('奖励',got.map(e=>e.name).join(', '),'解锁 2 个新元素');snd('buff');if(G.phase==='menu')hubInit();cgRwUpd()},
+    ()=>{b.dataset.busy='';toast('暂无视频','现在没有可播放的视频。','请稍后再试。');cgRwUpd()})});
 $('langb').addEventListener('click',()=>{try{localStorage.setItem('duel-lang','en')}catch(e){}location.replace('../?lang=en')});
+// menus and result screens shrink to the visible height when the picture is cropped (windows wider than 16:9)
+function cgFit(){const k=Math.min(1,innerHeight/(innerWidth*9/16));document.body.style.setProperty('--ovk',k.toFixed(4));document.body.classList.toggle('crop',k<.97)}
+addEventListener('resize',cgFit);cgFit();
 {const l=document.getElementById('cgload');if(l)l.remove()}
-window.__duel={cgMute,cgTouch,cgJoin,cgAd,cgMid,errs:()=>ERRS,questsToday,qAdd,lowFx:()=>lowFx,unlockN,isUn,dayCheck,dailyLO,today,sndT:()=>({SMP,ALIAS,FB,SVOL}),startTut,tutEnd,mxEnd,mxLv,cloneHit,MAPS,sever,net:()=>net,THEMES,buildBg,koFx,posep,ftext,audio:()=>({BUF,POOL,p:initAudio()}),snd,G,step,render,startMatch,EL,LIMB,LO,SV,toHub,openShop,dbg:()=>[SKL,SIG],held,press(c){pressed[c]=8;netPress(c)},netJoin,setRoom(r){ROOM=r}};
+window.__duel={cgState:()=>cgPlaying,cgMute,cgTouch,cgJoin,cgAd,cgMid,cgRwUpd,setName(n){MYNAME=String(n||'')},errs:()=>ERRS,questsToday,qAdd,lowFx:()=>lowFx,unlockN,isUn,dayCheck,dailyLO,today,sndT:()=>({SMP,ALIAS,FB,SVOL}),startTut,tutEnd,mxEnd,mxLv,cloneHit,MAPS,sever,net:()=>net,THEMES,buildBg,koFx,posep,ftext,audio:()=>({BUF,POOL,p:initAudio()}),snd,G,step,render,startMatch,EL,LIMB,LO,SV,toHub,openShop,dbg:()=>[SKL,SIG],held,press(c){pressed[c]=8;netPress(c)},netJoin,setRoom(r){ROOM=r}};
 })();
 </script>
 
