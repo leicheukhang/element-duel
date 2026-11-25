@@ -1662,7 +1662,8 @@ cgTouch(typeof matchMedia==='function'&&matchMedia('(pointer:coarse)').matches);
   const si=S.user&&S.user.systemInfo,dt=si&&si.device&&si.device.type;if(dt)cgTouch(dt!=='desktop');
   // language: follow the CrazyGames locale unless the player chose one with the language button
   try{const lc=String(si&&si.locale||''),pf=localStorage.getItem('duel-lang');if(!pf&&/^zh/i.test(lc)&&!/[?&]lang=en/.test(location.search)){location.replace('zh/'+location.search+location.hash);return}}catch(e){}
-  try{const u=await S.user.getUser();if(u&&u.username)MYNAME=String(u.username)}catch(e){}
+  // the username is fetched in the background so it never delays the first fight
+  try{Promise.resolve(S.user.getUser()).then(u=>{if(u&&u.username)MYNAME=String(u.username)}).catch(()=>{})}catch(e){}
   try{S.ad&&S.ad.hasAdblock&&S.ad.hasAdblock().then(b=>{cgAdblock=!!b;cgRwUpd()}).catch(()=>{})}catch(e){}
   cgMute(S.game.settings&&S.game.settings.muteAudio);S.game.addSettingsChangeListener(st=>cgMute(st&&st.muteAudio));
   // multiplayer: join from an invite link, open a room straight away for instant multiplayer, and follow joins while running
